@@ -1,0 +1,8 @@
+node_modules/
+greengrow-frontend/node_modules/
+greengrow-frontend/dist/
+.DS_Store
+Thumbs.db
+*.log
+.env
+config.local.php

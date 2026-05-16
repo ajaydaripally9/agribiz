@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .glass-card {
+    @apply bg-gg-glass backdrop-blur-xl border border-gg-border rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)];
+  }
+  .neon-text {
+    text-shadow: 0 0 10px rgba(57, 255, 20, 0.5), 0 0 20px rgba(57, 255, 20, 0.3);
+  }
+}
+
+body {
+  background: radial-gradient(circle at center, #0a1a0f 0%, #000000 100%);
+  color: white;
+  overflow-x: hidden;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #000;
+}
+::-webkit-scrollbar-thumb {
+  background: #11331a;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #1a4d27;
+}

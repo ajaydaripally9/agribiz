@@ -1,0 +1,37 @@
+{
+  "name": "AgriBiz Pro - Farmer Hub",
+  "short_name": "AgriBiz",
+  "description": "The Ultimate AI-Powered AgriTech Marketplace & Farmer Intelligence Hub",
+  "start_url": "./index.php",
+  "display": "standalone",
+  "background_color": "#F0F4F8",
+  "theme_color": "#22C55E",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/fluency/512/seedling.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://img.icons8.com/fluency/192/seedling.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["shopping", "business", "education"],
+  "shortcuts": [
+    {
+      "name": "Live Mandi Prices",
+      "url": "./customer_shop.php#mandi",
+      "icons": [{ "src": "https://img.icons8.com/fluency/96/market.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "AI Crop Doctor",
+      "url": "./customer_shop.php#ai",
+      "icons": [{ "src": "https://img.icons8.com/fluency/96/doctor.png", "sizes": "96x96" }]
+    }
+  ]
+}
