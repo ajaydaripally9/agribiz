@@ -1,0 +1,11 @@
+.git
+.gitignore
+.dockerignore
+node_modules/
+greengrow-frontend/node_modules/
+greengrow-frontend/dist/
+.env
+config.local.php
+*.log
+*.sql
+C:/Users/ajayd/.gemini/
