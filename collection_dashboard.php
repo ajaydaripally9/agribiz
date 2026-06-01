@@ -5,8 +5,8 @@ include 'db.php';
 checkRole(['Admin', 'Manager', 'Accountant']);
 
 // Auto-migrate
-mysqli_query($conn, "ALTER TABLE customers ADD COLUMN IF NOT EXISTS credit_limit DECIMAL(10,2) DEFAULT 0");
-mysqli_query($conn, "ALTER TABLE customers ADD COLUMN IF NOT EXISTS due_date DATE NULL");
+add_column_if_not_exists($conn, 'customers', 'credit_limit', "DECIMAL(10,2) DEFAULT 0");
+add_column_if_not_exists($conn, 'customers', 'due_date', "DATE NULL");
 
 $msg = ''; $msg_type = 'success';
 $filter = $_GET['filter'] ?? 'all'; // all | overdue | week

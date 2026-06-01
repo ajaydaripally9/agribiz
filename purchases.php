@@ -5,14 +5,14 @@ include 'db.php';
 checkRole(['Admin', 'Manager', 'Billing Staff']);
 
 // Auto-migrate
-mysqli_query($conn, "ALTER TABLE purchases ADD COLUMN IF NOT EXISTS invoice_no VARCHAR(50) DEFAULT ''");
-mysqli_query($conn, "ALTER TABLE purchases ADD COLUMN IF NOT EXISTS supplier_id INT DEFAULT 0");
-mysqli_query($conn, "ALTER TABLE purchases ADD COLUMN IF NOT EXISTS gst_rate DECIMAL(5,2) DEFAULT 18.00");
-mysqli_query($conn, "ALTER TABLE purchases ADD COLUMN IF NOT EXISTS paid_amount DECIMAL(10,2) DEFAULT 0");
-mysqli_query($conn, "ALTER TABLE purchases ADD COLUMN IF NOT EXISTS bill_type VARCHAR(20) DEFAULT 'Cash'");
-mysqli_query($conn, "ALTER TABLE purchases ADD COLUMN IF NOT EXISTS notes TEXT");
-mysqli_query($conn, "ALTER TABLE purchases ADD COLUMN IF NOT EXISTS is_return TINYINT DEFAULT 0");
-mysqli_query($conn, "ALTER TABLE fertilizers ADD COLUMN IF NOT EXISTS purchase_price DECIMAL(10,2) DEFAULT 0");
+add_column_if_not_exists($conn, 'purchases', 'invoice_no', "VARCHAR(50) DEFAULT ''");
+add_column_if_not_exists($conn, 'purchases', 'supplier_id', "INT DEFAULT 0");
+add_column_if_not_exists($conn, 'purchases', 'gst_rate', "DECIMAL(5,2) DEFAULT 18.00");
+add_column_if_not_exists($conn, 'purchases', 'paid_amount', "DECIMAL(10,2) DEFAULT 0");
+add_column_if_not_exists($conn, 'purchases', 'bill_type', "VARCHAR(20) DEFAULT 'Cash'");
+add_column_if_not_exists($conn, 'purchases', 'notes', "TEXT");
+add_column_if_not_exists($conn, 'purchases', 'is_return', "TINYINT DEFAULT 0");
+add_column_if_not_exists($conn, 'fertilizers', 'purchase_price', "DECIMAL(10,2) DEFAULT 0");
 
 $msg = ''; $msg_type = 'success';
 

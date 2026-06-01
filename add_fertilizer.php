@@ -4,7 +4,7 @@ include 'db.php';
 checkRole(['Admin', 'Billing Staff']);
 
 // Ensure barcode column exists
-mysqli_query($conn, "ALTER TABLE fertilizers ADD COLUMN IF NOT EXISTS barcode VARCHAR(100) AFTER id");
+add_column_if_not_exists($conn, 'fertilizers', 'barcode', "VARCHAR(100) AFTER id");
 
 $message = '';
 $msg_type = 'success';

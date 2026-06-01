@@ -5,15 +5,15 @@ include 'db.php';
 checkRole(['Admin', 'Manager', 'Billing Staff']);
 
 // Auto-migrate
-mysqli_query($conn, "ALTER TABLE fertilizers ADD COLUMN IF NOT EXISTS hsn_code VARCHAR(20) DEFAULT ''");
-mysqli_query($conn, "ALTER TABLE fertilizers ADD COLUMN IF NOT EXISTS category VARCHAR(50) DEFAULT ''");
-mysqli_query($conn, "ALTER TABLE fertilizers ADD COLUMN IF NOT EXISTS reorder_level INT DEFAULT 10");
-mysqli_query($conn, "ALTER TABLE fertilizers ADD COLUMN IF NOT EXISTS purchase_price DECIMAL(10,2) DEFAULT 0");
-mysqli_query($conn, "ALTER TABLE fertilizers ADD COLUMN IF NOT EXISTS gst_percent DECIMAL(5,2) DEFAULT 18.00");
-mysqli_query($conn, "ALTER TABLE fertilizers ADD COLUMN IF NOT EXISTS batch_no VARCHAR(50) DEFAULT ''");
-mysqli_query($conn, "ALTER TABLE fertilizers ADD COLUMN IF NOT EXISTS mfg_date DATE NULL");
-mysqli_query($conn, "ALTER TABLE fertilizers ADD COLUMN IF NOT EXISTS expiry_date DATE NULL");
-mysqli_query($conn, "ALTER TABLE fertilizers ADD COLUMN IF NOT EXISTS barcode VARCHAR(100) DEFAULT ''");
+add_column_if_not_exists($conn, 'fertilizers', 'hsn_code', "VARCHAR(20) DEFAULT ''");
+add_column_if_not_exists($conn, 'fertilizers', 'category', "VARCHAR(50) DEFAULT ''");
+add_column_if_not_exists($conn, 'fertilizers', 'reorder_level', "INT DEFAULT 10");
+add_column_if_not_exists($conn, 'fertilizers', 'purchase_price', "DECIMAL(10,2) DEFAULT 0");
+add_column_if_not_exists($conn, 'fertilizers', 'gst_percent', "DECIMAL(5,2) DEFAULT 18.00");
+add_column_if_not_exists($conn, 'fertilizers', 'batch_no', "VARCHAR(50) DEFAULT ''");
+add_column_if_not_exists($conn, 'fertilizers', 'mfg_date', "DATE NULL");
+add_column_if_not_exists($conn, 'fertilizers', 'expiry_date', "DATE NULL");
+add_column_if_not_exists($conn, 'fertilizers', 'barcode', "VARCHAR(100) DEFAULT ''");
 mysqli_query($conn, "CREATE TABLE IF NOT EXISTS stock_adjustments (id INT AUTO_INCREMENT PRIMARY KEY, fertilizer_id INT, fertilizer_name VARCHAR(100), adjustment_type ENUM('Add','Remove','Correction') DEFAULT 'Add', qty_before INT, qty_change INT, qty_after INT, reason TEXT, adjusted_by VARCHAR(100), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
 
 $tab = $_GET['tab'] ?? 'stock';

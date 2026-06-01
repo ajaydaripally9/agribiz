@@ -4,10 +4,10 @@ if(!isset($_SESSION['admin'])){ header('Location: index.php'); exit(); }
 include 'db.php';
 
 // ── Auto-migrate: add settings columns if missing ──────────────────────────
-mysqli_query($conn, "ALTER TABLE admin ADD COLUMN IF NOT EXISTS low_stock_threshold INT DEFAULT 10");
-mysqli_query($conn, "ALTER TABLE admin ADD COLUMN IF NOT EXISTS default_gst_rate DECIMAL(5,2) DEFAULT 18.00");
-mysqli_query($conn, "ALTER TABLE admin ADD COLUMN IF NOT EXISTS points_multiplier INT DEFAULT 1");
-mysqli_query($conn, "ALTER TABLE admin ADD COLUMN IF NOT EXISTS shop_name VARCHAR(100) DEFAULT 'AgriBiz Pro'");
+add_column_if_not_exists($conn, 'admin', 'low_stock_threshold', 'INT DEFAULT 10');
+add_column_if_not_exists($conn, 'admin', 'default_gst_rate', 'DECIMAL(5,2) DEFAULT 18.00');
+add_column_if_not_exists($conn, 'admin', 'points_multiplier', 'INT DEFAULT 1');
+add_column_if_not_exists($conn, 'admin', 'shop_name', 'VARCHAR(100) DEFAULT \'AgriBiz Pro\'');
 
 // ── Load admin settings ────────────────────────────────────────────────────
 $admin_row = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM admin LIMIT 1"));

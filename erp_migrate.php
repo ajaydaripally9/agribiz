@@ -105,13 +105,21 @@ $migrations = [
 
 $results = [];
 foreach ($migrations as $sql) {
-    $res = mysqli_query($conn, $sql);
+    if (preg_match('/^\s*ALTER\s+TABLE\s+(\w+)\s+ADD\s+COLUMN\s+IF\s+NOT\s+EXISTS\s+(\w+)\s+(.+)$/i', $sql, $matches)) {
+        $table = $matches[1];
+        $column = $matches[2];
+        $definition = $matches[3];
+        $res = add_column_if_not_exists($conn, $table, $column, $definition);
+    } else {
+        $res = mysqli_query($conn, $sql);
+    }
     $results[] = [
         'sql' => substr($sql, 0, 80) . (strlen($sql) > 80 ? '...' : ''),
         'ok'  => $res ? true : false,
         'err' => $res ? '' : mysqli_error($conn),
     ];
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="en">

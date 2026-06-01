@@ -5,19 +5,19 @@ include 'db.php';
 checkRole(['Admin', 'Manager', 'Billing Staff']);
 
 // Auto-migrate
-mysqli_query($conn, "ALTER TABLE sales ADD COLUMN IF NOT EXISTS invoice_no VARCHAR(50) DEFAULT ''");
-mysqli_query($conn, "ALTER TABLE sales ADD COLUMN IF NOT EXISTS paid_amount DECIMAL(10,2) DEFAULT 0");
-mysqli_query($conn, "ALTER TABLE sales ADD COLUMN IF NOT EXISTS bill_type VARCHAR(20) DEFAULT 'Cash'");
-mysqli_query($conn, "ALTER TABLE sales ADD COLUMN IF NOT EXISTS discount DECIMAL(10,2) DEFAULT 0");
-mysqli_query($conn, "ALTER TABLE sales ADD COLUMN IF NOT EXISTS gst_rate DECIMAL(5,2) DEFAULT 18.00");
-mysqli_query($conn, "ALTER TABLE sales ADD COLUMN IF NOT EXISTS notes TEXT");
-mysqli_query($conn, "ALTER TABLE sales ADD COLUMN IF NOT EXISTS is_return TINYINT DEFAULT 0");
-mysqli_query($conn, "ALTER TABLE orders ADD COLUMN IF NOT EXISTS invoice_no VARCHAR(50) DEFAULT ''");
-mysqli_query($conn, "ALTER TABLE orders ADD COLUMN IF NOT EXISTS paid_amount DECIMAL(10,2) DEFAULT 0");
-mysqli_query($conn, "ALTER TABLE orders ADD COLUMN IF NOT EXISTS bill_type VARCHAR(20) DEFAULT 'Cash'");
-mysqli_query($conn, "ALTER TABLE orders ADD COLUMN IF NOT EXISTS discount DECIMAL(10,2) DEFAULT 0");
-mysqli_query($conn, "ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_name VARCHAR(100) DEFAULT ''");
-mysqli_query($conn, "ALTER TABLE orders ADD COLUMN IF NOT EXISTS fertilizer_name VARCHAR(100) DEFAULT ''");
+add_column_if_not_exists($conn, 'sales', 'invoice_no', "VARCHAR(50) DEFAULT ''");
+add_column_if_not_exists($conn, 'sales', 'paid_amount', "DECIMAL(10,2) DEFAULT 0");
+add_column_if_not_exists($conn, 'sales', 'bill_type', "VARCHAR(20) DEFAULT 'Cash'");
+add_column_if_not_exists($conn, 'sales', 'discount', "DECIMAL(10,2) DEFAULT 0");
+add_column_if_not_exists($conn, 'sales', 'gst_rate', "DECIMAL(5,2) DEFAULT 18.00");
+add_column_if_not_exists($conn, 'sales', 'notes', "TEXT");
+add_column_if_not_exists($conn, 'sales', 'is_return', "TINYINT DEFAULT 0");
+add_column_if_not_exists($conn, 'orders', 'invoice_no', "VARCHAR(50) DEFAULT ''");
+add_column_if_not_exists($conn, 'orders', 'paid_amount', "DECIMAL(10,2) DEFAULT 0");
+add_column_if_not_exists($conn, 'orders', 'bill_type', "VARCHAR(20) DEFAULT 'Cash'");
+add_column_if_not_exists($conn, 'orders', 'discount', "DECIMAL(10,2) DEFAULT 0");
+add_column_if_not_exists($conn, 'orders', 'customer_name', "VARCHAR(100) DEFAULT ''");
+add_column_if_not_exists($conn, 'orders', 'fertilizer_name', "VARCHAR(100) DEFAULT ''");
 
 $role = $_SESSION['admin_role'] ?? 'Admin';
 $username = $_SESSION['admin_username'] ?? 'admin';

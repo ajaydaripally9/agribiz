@@ -11,6 +11,14 @@ if (!$conn) {
     die("Database Connection failed: " . mysqli_connect_error());
 }
 
+function add_column_if_not_exists($conn, $table, $column, $definition) {
+    $result = mysqli_query($conn, "SHOW COLUMNS FROM `$table` LIKE '$column'");
+    if ($result && mysqli_num_rows($result) === 0) {
+        return mysqli_query($conn, "ALTER TABLE `$table` ADD COLUMN `$column` $definition");
+    }
+    return true;
+}
+
 function logAudit($conn, $action) {
     $user = $_SESSION['admin_username'] ?? $_SESSION['admin'] ?? 'unknown';
     $role = $_SESSION['admin_role'] ?? 'Admin';
