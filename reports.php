@@ -6,17 +6,27 @@ checkRole(['Admin', 'Accountant']);
 // CSV Export
 if (isset($_GET['export'])) {
     $type = $_GET['export'];
-    header('Content-Type: text/csv');
+    header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename="' . $type . '_report_' . date('Y-m-d') . '.csv"');
     $out = fopen('php://output', 'w');
+    
+    // Add UTF-8 BOM so Excel opens it with correct encoding and doesn't get corrupted by the Rupee symbol (₹)
+    fwrite($out, "\xEF\xBB\xBF");
+    
     if ($type === 'sales') {
         fputcsv($out, ['ID', 'Customer', 'Fertilizer', 'Quantity', 'Total (₹)', 'Date']);
         $res = mysqli_query($conn, "SELECT * FROM sales ORDER BY sale_date DESC");
-        while ($r = mysqli_fetch_assoc($res)) fputcsv($out, [$r['id'], $r['customer_name'], $r['fertilizer_name'], $r['quantity'], $r['total_price'], $r['sale_date']]);
+        while ($r = mysqli_fetch_assoc($res)) {
+            $formatted_date = !empty($r['sale_date']) ? date('d-M-Y', strtotime($r['sale_date'])) : '';
+            fputcsv($out, [$r['id'], $r['customer_name'], $r['fertilizer_name'], $r['quantity'], $r['total_price'], $formatted_date]);
+        }
     } elseif ($type === 'purchases') {
         fputcsv($out, ['ID', 'Supplier', 'Fertilizer', 'Quantity', 'Cost/Unit (₹)', 'Total (₹)', 'Date']);
         $res = mysqli_query($conn, "SELECT * FROM purchases ORDER BY purchase_date DESC");
-        while ($r = mysqli_fetch_assoc($res)) fputcsv($out, [$r['id'], $r['supplier_name'], $r['fertilizer_name'], $r['quantity'], $r['cost'], $r['cost'] * $r['quantity'], $r['purchase_date']]);
+        while ($r = mysqli_fetch_assoc($res)) {
+            $formatted_date = !empty($r['purchase_date']) ? date('d-M-Y', strtotime($r['purchase_date'])) : '';
+            fputcsv($out, [$r['id'], $r['supplier_name'], $r['fertilizer_name'], $r['quantity'], $r['cost'], $r['cost'] * $r['quantity'], $formatted_date]);
+        }
     }
     fclose($out);
     exit();

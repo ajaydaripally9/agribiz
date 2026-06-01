@@ -11,6 +11,16 @@ if (!$conn) {
     die("Database Connection failed: " . mysqli_connect_error());
 }
 
+function logAudit($conn, $action) {
+    $user = $_SESSION['admin_username'] ?? $_SESSION['admin'] ?? 'unknown';
+    $role = $_SESSION['admin_role'] ?? 'Admin';
+    $ip   = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    $action_safe = mysqli_real_escape_string($conn, $action);
+    $user_safe   = mysqli_real_escape_string($conn, $user);
+    $role_safe   = mysqli_real_escape_string($conn, $role);
+    @mysqli_query($conn, "INSERT INTO audit_log (user_name, role, action, ip) VALUES ('$user_safe', '$role_safe', '$action_safe', '$ip')");
+}
+
 function checkRole($allowed_roles) {
     if (!isset($_SESSION['admin'])) {
         header('Location: index.php');
