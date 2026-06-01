@@ -23,7 +23,7 @@ if (isset($_POST['quick_pay'])) {
         $user = $_SESSION['admin_username'] ?? 'admin';
         mysqli_query($conn, "INSERT INTO vouchers (voucher_no, voucher_type, entity_type, entity_id, amount, payment_method, narration, date) VALUES ('$v_no', 'Receipt', 'Customer', $cid, $amount, '$method', 'Quick payment from collection dashboard', '$date')");
         // Also update orders paid_amount (distribute to oldest unpaid invoices)
-        $pending_invs = mysqli_query($conn, "SELECT invoice_no, SUM(total_price)-MAX(paid_amount) as due FROM orders WHERE customer_id=$cid AND status!='Voided' GROUP BY invoice_no HAVING due > 0 ORDER BY id ASC");
+        $pending_invs = mysqli_query($conn, "SELECT invoice_no, SUM(total_price)-MAX(paid_amount) as due FROM orders WHERE customer_id=$cid AND status!='Voided' GROUP BY invoice_no HAVING due > 0 ORDER BY MIN(id) ASC");
         $remaining = $amount;
         while ($inv = mysqli_fetch_assoc($pending_invs)) {
             if ($remaining <= 0) break;
@@ -35,6 +35,7 @@ if (isset($_POST['quick_pay'])) {
         $msg = "Payment of ₹".number_format($amount,2)." recorded via $method. Voucher: $v_no";
     }
 }
+
 
 // ─── Update Due Date ─────────────────────────────────────────────────────────
 if (isset($_POST['set_due_date'])) {
@@ -76,8 +77,8 @@ $stats = mysqli_fetch_assoc(mysqli_query($conn, "
            COALESCE(SUM(o.total_price - o.paid_amount), 0) as total_outstanding
     FROM customers c
     JOIN (SELECT customer_id, MAX(total_price) as total_price, MAX(paid_amount) as paid_amount FROM orders WHERE status!='Voided' GROUP BY customer_id, invoice_no) o ON o.customer_id = c.id
-    GROUP BY 1
 "));
+
 $total_outstanding = 0; $debtor_count = 0;
 // Recalculate
 $ts2 = mysqli_query($conn, "SELECT SUM(o.total_price - o.paid_amount) as s, COUNT(DISTINCT c.id) as c FROM customers c JOIN (SELECT customer_id, SUM(total_price) as total_price, SUM(paid_amount) as paid_amount FROM orders WHERE status!='Voided' GROUP BY customer_id) o ON o.customer_id=c.id WHERE (o.total_price-o.paid_amount)>0.01");

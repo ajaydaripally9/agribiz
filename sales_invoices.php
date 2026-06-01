@@ -62,8 +62,8 @@ $invoice_items  = [];
 if ($view_inv) {
     $inv_safe = mysqli_real_escape_string($conn, $view_inv);
     $invoice_detail = mysqli_fetch_assoc(mysqli_query($conn, "
-        SELECT o.invoice_no, o.customer_name, o.order_date, o.status, o.bill_type, o.paid_amount, o.discount,
-               SUM(o.total_price) as grand_total, c.mobile, c.address, c.gstin
+        SELECT o.invoice_no, MAX(o.customer_name) as customer_name, MAX(o.order_date) as order_date, MAX(o.status) as status, MAX(o.bill_type) as bill_type, MAX(o.paid_amount) as paid_amount, MAX(o.discount) as discount,
+               SUM(o.total_price) as grand_total, MAX(c.mobile) as mobile, MAX(c.address) as address, MAX(c.gstin) as gstin
         FROM orders o
         LEFT JOIN customers c ON o.customer_id = c.id
         WHERE o.invoice_no = '$inv_safe'
@@ -83,14 +83,15 @@ if ($filter_search) {
 $where = implode(' AND ', $where_parts);
 
 $invoices_res = mysqli_query($conn, "
-    SELECT o.invoice_no, o.customer_name, o.order_date, o.status, o.bill_type,
+    SELECT o.invoice_no, MAX(o.customer_name) as customer_name, MAX(o.order_date) as order_date, MAX(o.status) as status, MAX(o.bill_type) as bill_type,
            MAX(o.paid_amount) as paid_amount, MAX(o.discount) as discount,
            SUM(o.total_price) as grand_total, COUNT(o.id) as item_count
     FROM orders o
     WHERE $where
     GROUP BY o.invoice_no
-    ORDER BY o.order_date DESC, o.id DESC
+    ORDER BY MAX(o.order_date) DESC, MAX(o.id) DESC
 ");
+
 
 // ─── Summary Stats ────────────────────────────────────────────────────────────
 $stats = mysqli_fetch_assoc(mysqli_query($conn, "

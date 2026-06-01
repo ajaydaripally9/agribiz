@@ -11,9 +11,10 @@ $invoice_detail = null; $invoice_items = [];
 if ($inv_no) {
     $inv_safe = mysqli_real_escape_string($conn, $inv_no);
     $invoice_detail = mysqli_fetch_assoc(mysqli_query($conn, "
-        SELECT p.invoice_no, p.supplier_name, p.purchase_date, p.bill_type,
+        SELECT p.invoice_no, MAX(p.supplier_name) as supplier_name, MAX(p.purchase_date) as purchase_date, MAX(p.bill_type) as bill_type,
                SUM(p.cost*p.quantity) as grand_total, MAX(p.paid_amount) as paid_amount
         FROM purchases p WHERE p.invoice_no='$inv_safe' AND p.is_return=0 GROUP BY p.invoice_no"));
+
     $items_r = mysqli_query($conn, "SELECT fertilizer_id, fertilizer_name, quantity, cost FROM purchases WHERE invoice_no='$inv_safe' AND is_return=0");
     while ($r = mysqli_fetch_assoc($items_r)) $invoice_items[] = $r;
 }

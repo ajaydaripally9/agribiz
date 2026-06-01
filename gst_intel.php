@@ -79,14 +79,15 @@ if ($gstin) {
             $customer_id = $customer['id'];
             // Fetch complete orders/sales list
             $orders_query = "
-                SELECT invoice_no, order_date, status, bill_type, paid_amount,
+                SELECT invoice_no, MAX(order_date) as order_date, MAX(status) as status, MAX(bill_type) as bill_type, MAX(paid_amount) as paid_amount,
                        SUM(total_price) as grand_total, 
                        GROUP_CONCAT(CONCAT(fertilizer_name, ' (x', quantity, ')') SEPARATOR ', ') as item_details
                 FROM orders 
                 WHERE customer_id = $customer_id 
                 GROUP BY invoice_no 
-                ORDER BY id DESC";
+                ORDER BY MAX(id) DESC";
             $orders_result = mysqli_query($conn, $orders_query);
+
             
             // Financial calculations
             if ($orders_result) {

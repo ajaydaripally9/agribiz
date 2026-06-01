@@ -42,7 +42,7 @@ if (isset($_POST['update'])) {
 
 // Fetch order stats for this customer
 $stats = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(DISTINCT invoice_no) as total_orders, COALESCE(SUM(total_price),0) as total_spent FROM orders WHERE customer_id=$id AND status='Accepted'"));
-$recent_orders = mysqli_query($conn, "SELECT invoice_no, order_date, status, SUM(total_price) as total FROM orders WHERE customer_id=$id GROUP BY invoice_no ORDER BY id DESC LIMIT 5");
+$recent_orders = mysqli_query($conn, "SELECT invoice_no, MAX(order_date) as order_date, MAX(status) as status, SUM(total_price) as total FROM orders WHERE customer_id=$id GROUP BY invoice_no ORDER BY MAX(id) DESC LIMIT 5");
 ?>
 <!DOCTYPE html>
 <html lang="en">

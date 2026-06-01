@@ -53,8 +53,8 @@ if (isset($_POST['action']) && isset($_POST['invoice_no'])) {
 }
 
 function getOrders($conn, $status) {
-    return mysqli_query($conn, "SELECT invoice_no, customer_name, order_date, points_earned, COUNT(id) as ti, SUM(total_price) as gt, GROUP_CONCAT(fertilizer_name SEPARATOR ', ') as pn 
-                                FROM orders WHERE status='$status' GROUP BY invoice_no ORDER BY id DESC");
+    return mysqli_query($conn, "SELECT invoice_no, MAX(customer_name) as customer_name, MAX(order_date) as order_date, MAX(points_earned) as points_earned, COUNT(id) as ti, SUM(total_price) as gt, GROUP_CONCAT(fertilizer_name SEPARATOR ', ') as pn 
+                                FROM orders WHERE status='$status' GROUP BY invoice_no ORDER BY MAX(id) DESC");
 }
 
 $pending   = getOrders($conn, 'Pending');

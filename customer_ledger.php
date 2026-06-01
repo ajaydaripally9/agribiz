@@ -29,14 +29,15 @@ $customer = mysqli_fetch_assoc(mysqli_stmt_get_result($cust_stmt));
 
 // Fetch Orders (Ledger)
 $ledger_query = "
-    SELECT invoice_no, order_date, 
+    SELECT invoice_no, MAX(order_date) as order_date, 
            SUM(total_price) as total_bill, 
            MAX(paid_amount) as total_paid
     FROM orders 
     WHERE customer_id = $customer_id 
     GROUP BY invoice_no 
-    ORDER BY order_date DESC
+    ORDER BY MAX(order_date) DESC
 ";
+
 $ledger_result = mysqli_query($conn, $ledger_query);
 
 $overall_total = 0;

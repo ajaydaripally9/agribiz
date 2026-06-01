@@ -136,7 +136,7 @@ if (isset($_GET['status'])) {
 }
 
 // Fetch order history
-$history_stmt = mysqli_prepare($conn, "SELECT invoice_no, order_date, status, COUNT(id) as total_items, SUM(total_price) as grand_total, GROUP_CONCAT(fertilizer_name SEPARATOR ', ') as product_names FROM orders WHERE customer_id = ? GROUP BY invoice_no ORDER BY id DESC");
+$history_stmt = mysqli_prepare($conn, "SELECT invoice_no, MAX(order_date) as order_date, MAX(status) as status, COUNT(id) as total_items, SUM(total_price) as grand_total, GROUP_CONCAT(fertilizer_name SEPARATOR ', ') as product_names FROM orders WHERE customer_id = ? GROUP BY invoice_no ORDER BY MAX(id) DESC");
 mysqli_stmt_bind_param($history_stmt, "i", $customer_id);
 mysqli_stmt_execute($history_stmt);
 $order_history = mysqli_stmt_get_result($history_stmt);

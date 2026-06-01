@@ -83,7 +83,7 @@ $where = "p.purchase_date BETWEEN '$filter_from' AND '$filter_to' AND p.invoice_
 if ($filter_sup) $where .= " AND p.supplier_id = $filter_sup";
 
 $purchases_res = mysqli_query($conn, "
-    SELECT p.invoice_no, p.supplier_name, p.purchase_date, p.bill_type,
+    SELECT p.invoice_no, MAX(p.supplier_name) as supplier_name, MAX(p.purchase_date) as purchase_date, MAX(p.bill_type) as bill_type,
            SUM(p.cost * p.quantity) as total_amount,
            MAX(p.paid_amount) as paid_amount,
            SUM(p.quantity) as total_qty,
@@ -91,8 +91,9 @@ $purchases_res = mysqli_query($conn, "
     FROM purchases p
     WHERE $where
     GROUP BY p.invoice_no
-    ORDER BY p.purchase_date DESC
+    ORDER BY MAX(p.purchase_date) DESC
 ");
+
 
 $stats = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(DISTINCT invoice_no) as c, COALESCE(SUM(cost*quantity),0) as total FROM purchases WHERE purchase_date BETWEEN '$filter_from' AND '$filter_to' AND invoice_no != ''"));
 
