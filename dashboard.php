@@ -37,6 +37,9 @@ $forecast_res = mysqli_query($conn, "SELECT fertilizer_name, quantity, (quantity
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AgriBiz Dashboard</title>
+<script>
+  document.documentElement.setAttribute('data-theme', localStorage.getItem('admin-theme') || 'dark');
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -47,6 +50,12 @@ $forecast_res = mysqli_query($conn, "SELECT fertilizer_name, quantity, (quantity
   --green:#22c55e;--green-dark:#16a34a;--purple:#a855f7;--blue:#3b82f6;
   --orange:#f59e0b;--red:#ef4444;--teal:#14b8a6;
   --text:#e6edf3;--text-muted:#8b949e;--border:#30363d;
+}
+[data-theme="light"] {
+  --bg:#f8fafc;--sidebar:#ffffff;--card:#ffffff;--card2:#f1f5f9;
+  --green:#16a34a;--green-dark:#15803d;--purple:#7c3aed;--blue:#2563eb;
+  --orange:#ea580c;--red:#dc2626;--teal:#0d9488;
+  --text:#0f172a;--text-muted:#64748b;--border:#e2e8f0;
 }
 body{background:var(--bg);color:var(--text);display:flex;min-height:100vh;overflow-x:hidden;}
 
@@ -98,6 +107,7 @@ body{background:var(--bg);color:var(--text);display:flex;min-height:100vh;overfl
 
 /* LOW STOCK */
 .low-stock-card{background:linear-gradient(135deg,#1a1400,#1c1a00);border:1px solid #78350f;border-radius:14px;padding:20px;margin-bottom:20px;display:flex;align-items:center;gap:20px;}
+[data-theme="light"] .low-stock-card{background:linear-gradient(135deg,#fffbeb,#fef3c7);border-color:#f59e0b;}
 .low-stock-icon{width:52px;height:52px;background:rgba(245,158,11,.15);border:2px solid var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--orange);flex-shrink:0;}
 .low-stock-content{flex:1;}
 .low-stock-content h3{font-size:14px;font-weight:600;color:var(--orange);margin-bottom:10px;}
@@ -185,6 +195,10 @@ body{background:var(--bg);color:var(--text);display:flex;min-height:100vh;overfl
         <input type="text" id="globalSearch" placeholder="🔍 Search orders, customers..." oninput="doSearch(this.value)" style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:7px 14px;color:var(--text);font-size:13px;width:220px;outline:none;" onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'">
         <div id="searchDropdown" style="display:none;position:absolute;top:38px;left:0;right:0;background:var(--card2);border:1px solid var(--border);border-radius:10px;z-index:200;max-height:280px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.3);"></div>
       </div>
+      <!-- Theme Switcher -->
+      <button class="notif-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Theme" style="border:none;outline:none;background:var(--card2);">
+        <i class="fas fa-sun"></i>
+      </button>
       <div class="notif-btn"><i class="fas fa-bell"></i><?php if($new_orders>0) echo '<span class="notif-badge">'.$new_orders.'</span>'; ?></div>
       <div class="admin-btn">
         <div class="admin-avatar">AA</div>
@@ -318,7 +332,7 @@ sparkline('sp3', [5,8,12,7,15,10,<?php echo $total_orders; ?>], '#3b82f6');
 sparkline('sp4', [3,5,2,4,3,4,<?php echo $low_stock_count; ?>], '#f59e0b');
 
 // Main Chart
-new Chart(document.getElementById('financeChart'), {
+window.financeChartInstance = new Chart(document.getElementById('financeChart'), {
   type:'bar',
   data:{
     labels: <?php echo json_encode($chart_dates); ?>,
@@ -331,8 +345,8 @@ new Chart(document.getElementById('financeChart'), {
     responsive:true,
     plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'₹'+ctx.raw.toLocaleString()}}},
     scales:{
-      x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8b949e'}},
-      y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8b949e',callback:v=>'₹'+v.toLocaleString()},beginAtZero:true}
+      x:{grid:{color: localStorage.getItem('admin-theme') === 'light' ? 'rgba(0,0,0,.05)' : 'rgba(255,255,255,.05)'},ticks:{color: localStorage.getItem('admin-theme') === 'light' ? '#64748b' : '#8b949e'}},
+      y:{grid:{color: localStorage.getItem('admin-theme') === 'light' ? 'rgba(0,0,0,.05)' : 'rgba(255,255,255,.05)'},ticks:{color: localStorage.getItem('admin-theme') === 'light' ? '#64748b' : '#8b949e',callback:v=>'₹'+v.toLocaleString()},beginAtZero:true}
     }
   }
 });
@@ -418,6 +432,38 @@ document.addEventListener('click', e => {
     document.getElementById('searchDropdown').style.display='none';
   }
 });
+
+// Theme toggle logic
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') || 'dark';
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('admin-theme', next);
+  
+  // Update toggle button icon
+  const btnIcon = document.getElementById('themeToggleBtn').querySelector('i');
+  btnIcon.className = next === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+  
+  // Dynamically update Chart.js grid & tick colors
+  if (window.financeChartInstance) {
+    const isLight = next === 'light';
+    const gridColor = isLight ? 'rgba(0,0,0,.05)' : 'rgba(255,255,255,.05)';
+    const tickColor = isLight ? '#64748b' : '#8b949e';
+    
+    window.financeChartInstance.options.scales.x.grid.color = gridColor;
+    window.financeChartInstance.options.scales.x.ticks.color = tickColor;
+    window.financeChartInstance.options.scales.y.grid.color = gridColor;
+    window.financeChartInstance.options.scales.y.ticks.color = tickColor;
+    window.financeChartInstance.update();
+  }
+}
+
+// Initialize theme icon on load
+(function() {
+  const saved = localStorage.getItem('admin-theme') || 'dark';
+  const btnIcon = document.getElementById('themeToggleBtn').querySelector('i');
+  btnIcon.className = saved === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+})();
 </script>
 </body>
 </html>
