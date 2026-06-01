@@ -1,7 +1,7 @@
 <?php
 session_start();
-if (!isset($_SESSION['admin'])) { header('Location: index.php'); exit(); }
 include 'db.php';
+checkRole(['Admin', 'Billing Staff']);
 
 $message = '';
 $invoice_html = '';
@@ -9,6 +9,8 @@ $invoice_html = '';
 // Handle POS Submission
 if (isset($_POST['process_bill'])) {
     $customer_id = intval($_POST['customer_id']);
+    $paid_amount = floatval($_POST['paid_amount'] ?? 0);
+    $bill_type = mysqli_real_escape_string($conn, $_POST['bill_type'] ?? 'Cash');
     $items = $_POST['items']; // Array of [id => qty]
 
     if (!$customer_id || empty($items)) {
@@ -55,7 +57,10 @@ if (isset($_POST['process_bill'])) {
                 'name' => $fert['fertilizer_name'],
                 'qty' => $qty,
                 'price' => $price,
-                'total' => $item_total
+                'total' => $item_total,
+                'batch' => $fert['batch_no'],
+                'mfg' => $fert['mfg_date'],
+                'expiry' => $fert['expiry_date']
             ];
         }
 
@@ -67,13 +72,13 @@ if (isset($_POST['process_bill'])) {
                     mysqli_query($conn, "UPDATE fertilizers SET quantity = quantity - {$item['qty']} WHERE id = {$item['id']}");
                     
                     // Insert Order (Auto-Delivered)
-                    $ins_order = mysqli_prepare($conn, "INSERT INTO orders (customer_id, customer_name, fertilizer_id, fertilizer_name, quantity, total_price, order_date, status, invoice_no) VALUES (?, ?, ?, ?, ?, ?, CURDATE(), 'Delivered', ?)");
-                    mysqli_stmt_bind_param($ins_order, "isisids", $customer_id, $customer['customer_name'], $item['id'], $item['name'], $item['qty'], $item['total'], $invoice_no);
+                    $ins_order = mysqli_prepare($conn, "INSERT INTO orders (customer_id, customer_name, fertilizer_id, fertilizer_name, quantity, total_price, order_date, status, invoice_no, paid_amount, bill_type, batch_no, mfg_date, expiry_date) VALUES (?, ?, ?, ?, ?, ?, CURDATE(), 'Delivered', ?, ?, ?, ?, ?, ?)");
+                    mysqli_stmt_bind_param($ins_order, "isisidsdssss", $customer_id, $customer['customer_name'], $item['id'], $item['name'], $item['qty'], $item['total'], $invoice_no, $paid_amount, $bill_type, $item['batch'], $item['mfg'], $item['expiry']);
                     mysqli_stmt_execute($ins_order);
 
                     // Insert Sale
-                    $ins_sale = mysqli_prepare($conn, "INSERT INTO sales (customer_name, fertilizer_name, quantity, total_price, sale_date, invoice_no) VALUES (?, ?, ?, ?, CURDATE(), ?)");
-                    mysqli_stmt_bind_param($ins_sale, "ssids", $customer['customer_name'], $item['name'], $item['qty'], $item['total'], $invoice_no);
+                    $ins_sale = mysqli_prepare($conn, "INSERT INTO sales (customer_name, fertilizer_name, quantity, total_price, sale_date, invoice_no, paid_amount, bill_type, batch_no, mfg_date, expiry_date) VALUES (?, ?, ?, ?, CURDATE(), ?, ?, ?, ?, ?, ?)");
+                    mysqli_stmt_bind_param($ins_sale, "ssidsdssss", $customer['customer_name'], $item['name'], $item['qty'], $item['total'], $invoice_no, $paid_amount, $bill_type, $item['batch'], $item['mfg'], $item['expiry']);
                     mysqli_stmt_execute($ins_sale);
                 }
                 mysqli_commit($conn);
@@ -89,7 +94,22 @@ if (isset($_POST['process_bill'])) {
 
 // Fetch Customers and Products for dropdowns
 $customers = mysqli_query($conn, "SELECT id, customer_name, mobile FROM customers ORDER BY customer_name ASC");
-$products = mysqli_query($conn, "SELECT id, fertilizer_name, price, quantity FROM fertilizers WHERE quantity > 0 ORDER BY fertilizer_name ASC");
+$products = mysqli_query($conn, "SELECT id, barcode, fertilizer_name, price, quantity, batch_no, mfg_date, expiry_date FROM fertilizers WHERE quantity > 0 ORDER BY fertilizer_name ASC");
+$catalog_data = [];
+while($p = mysqli_fetch_assoc($products)) {
+    if (!empty($p['barcode'])) {
+        $catalog_data[$p['barcode']] = [
+            'id' => intval($p['id']),
+            'fertilizer_name' => $p['fertilizer_name'],
+            'price' => floatval($p['price']),
+            'quantity' => intval($p['quantity']),
+            'batch_no' => $p['batch_no'] ?? '',
+            'mfg_date' => $p['mfg_date'] ?? '',
+            'expiry_date' => $p['expiry_date'] ?? ''
+        ];
+    }
+}
+mysqli_data_seek($products, 0);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -99,6 +119,7 @@ $products = mysqli_query($conn, "SELECT id, fertilizer_name, price, quantity FRO
 <title>Offline Billing (POS) — AgriBiz</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://unpkg.com/html5-qrcode"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
 :root{--bg:#0d1117;--card:#161b22;--card2:#1c2333;--green:#22c55e;--blue:#3b82f6;--orange:#f59e0b;--red:#ef4444;--text:#e6edf3;--muted:#8b949e;--border:#30363d;}
@@ -169,10 +190,28 @@ select:focus, input:focus{border-color:var(--green);}
 <div class="main">
   <!-- Left: Product Selection -->
   <div class="billing-section">
-    <div class="card">
+    <div class="card" style="margin-bottom: 20px;">
       <div class="card-header">
         <h3><i class="fas fa-search"></i> Select Products</h3>
         <input type="text" id="prodSearch" placeholder="Search by name..." oninput="filterProds(this.value)" style="width:200px;padding:6px 12px;font-size:12px;">
+      </div>
+      
+      <div style="padding:14px 20px 0; display:flex; gap:10px;">
+        <input type="text" id="barcodeInput" placeholder="⚡ Scan Barcode (Gun/Type)..." style="flex:1; background:var(--card2); border:1px dashed var(--orange); padding:8px 12px; font-size:13px; font-weight:700; color:#fff; border-radius:8px; outline:none;" autocomplete="off">
+        <button type="button" id="startBillingScan" style="background:var(--card2); border:1px solid var(--border); border-radius:8px; width:44px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--orange);" title="Scan using Camera"><i class="fas fa-barcode"></i></button>
+      </div>
+
+      <div id="billingReader" style="display:none; margin: 12px 20px 0; background:#000; border-radius:10px; overflow:hidden; border:2px dashed var(--orange); aspect-ratio:4/3;"></div>
+      
+      <!-- Barcode Simulator Testing Panel -->
+      <div id="barcodeSimulator" style="margin: 12px 20px 12px; background:var(--card2); border:1px solid var(--border); border-radius:10px; padding:15px; text-align:center;">
+        <p style="font-size:11px; font-weight:700; color:var(--orange); margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;"><i class="fas fa-barcode"></i> Barcode Testing Panel (Simulator)</p>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <button type="button" onclick="simulateScan('89012345')" style="background:rgba(34,197,94,0.15); color:var(--green); border:1px solid rgba(34,197,94,0.3); border-radius:8px; padding:8px; font-size:11px; font-weight:700; cursor:pointer;">Scan Urea</button>
+          <button type="button" onclick="simulateScan('89012346')" style="background:rgba(59,130,246,0.15); color:var(--blue); border:1px solid rgba(59,130,246,0.3); border-radius:8px; padding:8px; font-size:11px; font-weight:700; cursor:pointer;">Scan DAP</button>
+          <button type="button" onclick="simulateScan('89012347')" style="background:rgba(245,158,11,0.15); color:var(--orange); border:1px solid rgba(245,158,11,0.3); border-radius:8px; padding:8px; font-size:11px; font-weight:700; cursor:pointer;">Scan Potash</button>
+          <button type="button" onclick="simulateScan('89012348')" style="background:rgba(168,85,247,0.15); color:var(--purple); border:1px solid rgba(168,85,247,0.3); border-radius:8px; padding:8px; font-size:11px; font-weight:700; cursor:pointer;">Scan Compost</button>
+        </div>
       </div>
       <div class="product-grid" id="productGrid">
         <?php while($p = mysqli_fetch_assoc($products)): ?>
@@ -200,6 +239,17 @@ select:focus, input:focus{border-color:var(--green);}
           <option value="<?php echo $c['id']; ?>"><?php echo htmlspecialchars($c['customer_name']); ?> (<?php echo $c['mobile']; ?>)</option>
           <?php endwhile; ?>
         </select>
+        <div style="margin-top:12px;">
+            <label>Bill Type</label>
+            <div style="display:flex; gap:10px;">
+                <label style="flex:1; background:var(--card2); border:1px solid var(--border); padding:8px; border-radius:8px; display:flex; align-items:center; gap:8px; cursor:pointer;">
+                    <input type="radio" name="bill_type" value="Cash" checked style="width:auto;"> Cash Bill
+                </label>
+                <label style="flex:1; background:var(--card2); border:1px solid var(--border); padding:8px; border-radius:8px; display:flex; align-items:center; gap:8px; cursor:pointer;">
+                    <input type="radio" name="bill_type" value="Credit" style="width:auto;"> Credit Bill
+                </label>
+            </div>
+        </div>
         <p style="font-size:11px;color:var(--muted);margin-top:6px;"><i class="fas fa-plus-circle"></i> New customer? <a href="customers.php" style="color:var(--blue);text-decoration:none;">Register here</a></p>
       </div>
     </div>
@@ -216,9 +266,13 @@ select:focus, input:focus{border-color:var(--green);}
       </div>
       
       <div id="summary">
-        <div class="summary-row"><span>Subtotal</span><span id="subTotal">₹0.00</span></div>
+        <div class="summary-row"><span>Subtotal (Excl. GST)</span><span id="subTotal">₹0.00</span></div>
         <div class="summary-row"><span>GST (18%)</span><span id="gstTotal">₹0.00</span></div>
-        <div class="summary-row total-row"><span>Grand Total</span><span id="grandTotal">₹0.00</span></div>
+        <div class="summary-row total-row"><span>Grand Total (Incl. GST)</span><span id="grandTotal">₹0.00</span></div>
+        <div class="form-group" style="margin-top:15px;">
+            <label style="color:var(--green)">Amount Received Today (₹)</label>
+            <input type="number" step="0.01" name="paid_amount" id="paidAmount" placeholder="0.00" style="border-color:var(--green); font-weight:bold; font-size:16px;">
+        </div>
       </div>
 
       <button type="submit" name="process_bill" class="btn-process" id="submitBtn" disabled>
@@ -277,10 +331,11 @@ function renderCart() {
     `;
   }
 
-  const gst = subtotal * 0.18;
-  const grand = subtotal + gst;
+  const base_price = subtotal / 1.18;
+  const gst = subtotal - base_price;
+  const grand = subtotal;
 
-  document.getElementById('subTotal').textContent = '₹' + subtotal.toFixed(2);
+  document.getElementById('subTotal').textContent = '₹' + base_price.toFixed(2);
   document.getElementById('gstTotal').textContent = '₹' + gst.toFixed(2);
   document.getElementById('grandTotal').textContent = '₹' + grand.toFixed(2);
   document.getElementById('submitBtn').disabled = !hasItems;
@@ -292,6 +347,116 @@ function filterProds(q) {
     const name = p.querySelector('.name').textContent.toLowerCase();
     p.style.display = name.includes(q.toLowerCase()) ? 'block' : 'none';
   });
+}
+
+// --- POS Barcode Gun & Camera Scanning Logic ---
+const productCatalog = <?php echo json_encode($catalog_data); ?>;
+const barcodeInput = document.getElementById('barcodeInput');
+
+barcodeInput.addEventListener('input', function() {
+  const code = this.value.trim();
+  // Standard product barcodes are EAN-8 (8 digits) or longer
+  if (code.length >= 8) {
+    handlePOSBarcode(code);
+  }
+});
+
+barcodeInput.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    handlePOSBarcode(this.value.trim());
+  }
+});
+
+function handlePOSBarcode(code) {
+  if (!code) return;
+  const p = productCatalog[code];
+  if (p) {
+    // Add product to POS billing cart
+    addToCart({
+      id: p.id,
+      fertilizer_name: p.fertilizer_name,
+      price: p.price,
+      quantity: p.quantity
+    });
+    // Success feedback
+    barcodeInput.value = '';
+    barcodeInput.style.borderColor = 'var(--green)';
+    barcodeInput.style.backgroundColor = 'rgba(34,197,94,0.08)';
+    setTimeout(() => {
+      barcodeInput.style.borderColor = 'var(--orange)';
+      barcodeInput.style.backgroundColor = 'transparent';
+    }, 800);
+  } else {
+    // Failure feedback (flash red)
+    barcodeInput.style.borderColor = 'var(--red)';
+    barcodeInput.style.backgroundColor = 'rgba(239,68,68,0.08)';
+    setTimeout(() => {
+      barcodeInput.style.borderColor = 'var(--orange)';
+      barcodeInput.style.backgroundColor = 'transparent';
+    }, 800);
+  }
+}
+
+let billingQrCode;
+document.getElementById('startBillingScan').addEventListener('click', function() {
+  const readerDiv = document.getElementById('billingReader');
+  const scanBtn = this;
+  if (billingQrCode) {
+    stopBillingScanner();
+    return;
+  }
+  
+  readerDiv.style.display = 'block';
+  scanBtn.style.color = 'var(--green)';
+  scanBtn.style.borderColor = 'var(--green)';
+  
+  billingQrCode = new Html5Qrcode("billingReader");
+  const config = {
+    fps: 15,
+    qrbox: { width: 280, height: 160 },
+    formatsToSupport: [
+      Html5QrcodeSupportedFormats.EAN_13,
+      Html5QrcodeSupportedFormats.EAN_8,
+      Html5QrcodeSupportedFormats.CODE_128,
+      Html5QrcodeSupportedFormats.CODE_39,
+      Html5QrcodeSupportedFormats.UPC_A,
+      Html5QrcodeSupportedFormats.UPC_E,
+      Html5QrcodeSupportedFormats.QR_CODE
+    ]
+  };
+  
+  billingQrCode.start(
+    { facingMode: "environment" }, 
+    config,
+    (decodedText) => {
+      handlePOSBarcode(decodedText);
+      stopBillingScanner();
+    },
+    (errorMessage) => {}
+  ).catch(err => {
+    alert("Camera error: " + err);
+    stopBillingScanner();
+  });
+});
+
+function stopBillingScanner() {
+  const readerDiv = document.getElementById('billingReader');
+  const scanBtn = document.getElementById('startBillingScan');
+  if (billingQrCode) {
+    billingQrCode.stop().then(() => {
+      billingQrCode = null;
+      readerDiv.style.display = 'none';
+      scanBtn.style.color = 'var(--orange)';
+      scanBtn.style.borderColor = 'var(--border)';
+    });
+  }
+}
+
+function simulateScan(code) {
+  const input = document.getElementById('barcodeInput');
+  input.value = code;
+  handlePOSBarcode(code);
 }
 </script>
 

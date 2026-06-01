@@ -59,6 +59,7 @@ if ($type === 'customer') {
         if (password_verify($password, $admin['password']) || $password === $admin['password']) {
             $_SESSION['admin'] = true;
             $_SESSION['admin_username'] = $admin['username'];
+            $_SESSION['admin_role'] = $admin['role'] ?: 'Admin';
             echo json_encode(['success' => true, 'redirect' => 'dashboard.php']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Invalid username or password.']);

@@ -1,10 +1,7 @@
 <?php
 session_start();
-if(!isset($_SESSION['admin'])){
-    header('Location: index.php');
-    exit();
-}
 include 'db.php';
+checkRole(['Admin', 'Accountant']);
 
 $query = "SELECT * FROM purchases ORDER BY purchase_date DESC, id DESC";
 $result = mysqli_query($conn, $query);

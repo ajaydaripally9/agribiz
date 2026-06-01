@@ -1,58 +1,45 @@
 <?php
-mysqli_report(MYSQLI_REPORT_OFF);
+$host = getenv('DB_HOST') ?: '127.0.0.1';
+$port = getenv('DB_PORT') ?: '3307';
+$user = getenv('DB_USER') ?: 'root';
+$pass = getenv('DB_PASSWORD') ?: '';
+$dbname = getenv('DB_NAME') ?: 'fertilizer_shop';
 
-$envHost = getenv('DB_HOST');
-$envPort = getenv('DB_PORT');
-$envUser = getenv('DB_USER');
-$envPassword = getenv('DB_PASSWORD');
-$envDatabase = getenv('DB_NAME');
-
-$database = $envDatabase ?: 'fertilizer_shop';
-$attempts = [];
-
-if ($envHost || $envPort || $envUser || $envPassword) {
-    $attempts[] = [
-        $envHost ?: '127.0.0.1',
-        $envPort ? intval($envPort) : 3306,
-        $envUser ?: 'root',
-        $envPassword !== false ? $envPassword : '',
-        $database,
-    ];
-}
-
-$attempts[] = ['127.0.0.1', 3306, 'root', '', $database];
-$attempts[] = ['127.0.0.1', 3307, 'root', '', $database];
-$attempts[] = ['localhost', 3306, 'root', '', $database];
-
-$errors = [];
-$conn = null;
-
-foreach ($attempts as $attempt) {
-    list($host, $port, $user, $password, $db) = $attempt;
-    $conn = @mysqli_connect($host, $user, $password, $db, $port);
-    if ($conn) {
-        break;
-    }
-    $errors[] = sprintf("%s:%s %s", $host, $port, mysqli_connect_error());
-}
-
+// Connect to MySQL
+$conn = mysqli_connect($host, $user, $pass, $dbname, $port);
 if (!$conn) {
-    http_response_code(500);
-    echo "<h1>Database connection failed</h1>";
-    echo "<p>Please set the correct database credentials in <strong>db.php</strong> or via environment variables.</p>";
-    echo "<p>Try one of these connections:</p>";
-    echo "<ul>";
-    foreach ($attempts as $attempt) {
-        list($host, $port, $user) = $attempt;
-        echo "<li>Host: " . htmlspecialchars($host) . ", Port: " . htmlspecialchars($port) . ", User: " . htmlspecialchars($user) . "</li>";
-    }
-    echo "</ul>";
-    echo "<p>Errors:</p><pre>" . htmlspecialchars(implode("\n", $errors)) . "</pre>";
-    exit();
+    die("Database Connection failed: " . mysqli_connect_error());
 }
 
-// Auto-migrate: ensure loyalty points columns exist
-@mysqli_query($conn, "ALTER TABLE customers ADD COLUMN IF NOT EXISTS points INT DEFAULT 0");
-@mysqli_query($conn, "ALTER TABLE orders ADD COLUMN IF NOT EXISTS points_earned INT DEFAULT 0");
-@mysqli_query($conn, "ALTER TABLE fertilizers ADD COLUMN IF NOT EXISTS barcode VARCHAR(100) AFTER id");
+function checkRole($allowed_roles) {
+    if (!isset($_SESSION['admin'])) {
+        header('Location: index.php');
+        exit();
+    }
+    $role = $_SESSION['admin_role'] ?? 'Admin';
+    if (!in_array($role, $allowed_roles)) {
+        echo "<!DOCTYPE html>
+        <html>
+        <head>
+            <title>Access Denied</title>
+            <link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap' rel='stylesheet'>
+            <style>
+                body { background: #0d1117; color: #e6edf3; font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+                .card { background: #161b22; border: 1px solid #30363d; padding: 40px; border-radius: 18px; text-align: center; max-width: 450px; }
+                h1 { color: #ef4444; font-size: 24px; margin-bottom: 12px; }
+                p { color: #8b949e; font-size: 14px; margin-bottom: 24px; line-height: 1.5; }
+                .btn { background: #22c55e; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 13px; }
+            </style>
+        </head>
+        <body>
+            <div class='card'>
+                <h1>🔒 Access Denied</h1>
+                <p>Your current role <strong>\"" . htmlspecialchars($role) . "\"</strong> does not have permission to access this screen.</p>
+                <a href='dashboard.php' class='btn'>Back to Dashboard</a>
+            </div>
+        </body>
+        </html>";
+        exit();
+    }
+}
 ?>

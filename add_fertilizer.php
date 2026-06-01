@@ -1,7 +1,7 @@
 <?php
 session_start();
-if (!isset($_SESSION['admin'])) { header('Location: index.php'); exit(); }
 include 'db.php';
+checkRole(['Admin', 'Billing Staff']);
 
 // Ensure barcode column exists
 mysqli_query($conn, "ALTER TABLE fertilizers ADD COLUMN IF NOT EXISTS barcode VARCHAR(100) AFTER id");
@@ -18,9 +18,15 @@ if (isset($_POST['submit'])) {
     $category = mysqli_real_escape_string($conn, $_POST['category']);
     $npk      = mysqli_real_escape_string($conn, $_POST['npk_ratio'] ?? '');
     $weight   = mysqli_real_escape_string($conn, $_POST['weight'] ?? '');
+    $batch    = mysqli_real_escape_string($conn, $_POST['batch_no'] ?? '');
+    $mfg      = mysqli_real_escape_string($conn, $_POST['mfg_date'] ?? '');
+    $expiry   = mysqli_real_escape_string($conn, $_POST['expiry_date'] ?? '');
+    $pur_price = floatval($_POST['purchase_price'] ?? 0);
+    $hsn_code  = mysqli_real_escape_string($conn, $_POST['hsn_code'] ?? '');
+    $reorder_level = intval($_POST['reorder_level'] ?? 10);
 
-    $query = "INSERT INTO fertilizers (barcode, fertilizer_name, company_name, quantity, price, category) 
-              VALUES ('$barcode', '$name', '$company', '$quantity', '$price', '$category')";
+    $query = "INSERT INTO fertilizers (barcode, fertilizer_name, company_name, quantity, price, category, batch_no, mfg_date, expiry_date, purchase_price, hsn_code, reorder_level) 
+              VALUES ('$barcode', '$name', '$company', '$quantity', '$price', '$category', '$batch', '$mfg', '$expiry', '$pur_price', '$hsn_code', '$reorder_level')";
     
     if (mysqli_query($conn, $query)) {
         $message = "Product '$name' added successfully to inventory!";
@@ -108,6 +114,10 @@ input:focus, select:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(34
   <a href="view_fertilizer.php" class="nav-item"><i class="fas fa-flask"></i> Inventory</a>
   <a href="add_fertilizer.php" class="nav-item active"><i class="fas fa-plus-circle"></i> Add Product</a>
   <a href="customers.php" class="nav-item"><i class="fas fa-users"></i> Customers</a>
+  <a href="gst_intel.php" class="nav-item"><i class="fas fa-search-dollar"></i> GST Intelligence</a>
+  <a href="receipts_payments.php" class="nav-item"><i class="fas fa-money-bill-transfer"></i> Vouchers Entry</a>
+  <a href="accounting_books.php" class="nav-item"><i class="fas fa-book"></i> Day/Cash Books</a>
+  <a href="gst_reports.php" class="nav-item"><i class="fas fa-percent"></i> GST Reports</a>
   <div style="margin-top:auto;padding:16px;"><a href="logout.php" style="color:var(--red);text-decoration:none;font-size:13px;"><i class="fas fa-sign-out-alt"></i> Logout</a></div>
 </aside>
 
@@ -148,8 +158,16 @@ input:focus, select:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(34
               </select>
             </div>
             <div class="form-group">
-              <label>Price (₹)</label>
+              <label>Selling Price (₹)</label>
               <input type="number" step="0.01" name="price" id="fPrice" placeholder="0.00" required>
+            </div>
+            <div class="form-group">
+              <label>Purchase Price (₹)</label>
+              <input type="number" step="0.01" name="purchase_price" id="fPurchasePrice" placeholder="0.00">
+            </div>
+            <div class="form-group">
+              <label>HSN Code</label>
+              <input type="text" name="hsn_code" id="fHsnCode" placeholder="e.g. 3102">
             </div>
             <div class="form-group full">
               <label>Product Name</label>
@@ -170,6 +188,22 @@ input:focus, select:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(34
             <div class="form-group">
               <label>Starting Quantity</label>
               <input type="number" name="quantity" value="100" required>
+            </div>
+            <div class="form-group">
+              <label>Reorder Alert Level</label>
+              <input type="number" name="reorder_level" value="10" required>
+            </div>
+            <div class="form-group">
+              <label>Batch Number</label>
+              <input type="text" name="batch_no" id="fBatch" placeholder="e.g. B-101">
+            </div>
+            <div class="form-group">
+              <label>Mfg Date</label>
+              <input type="date" name="mfg_date" id="fMfg">
+            </div>
+            <div class="form-group">
+              <label>Expiry Date</label>
+              <input type="date" name="expiry_date" id="fExpiry">
             </div>
           </div>
           
@@ -219,7 +253,18 @@ const catalog = {
   "123456789012": { name: "NPK 19:19:19", company: "Mahadhan", category: "Fertilizers", price: 180, npk: "19-19-19", weight: "1kg" }
 };
 
-// --- Barcode Scanner Logic ---
+// --- Barcode Scanner/Gun Logic ---
+// Auto-fill on manual typing or fast keyboard/barcode gun entry
+document.getElementById('fBarcode').addEventListener('input', function() {
+  autoFill(this.value.trim());
+});
+document.getElementById('fBarcode').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    autoFill(this.value.trim());
+  }
+});
+
 document.getElementById('startScan').addEventListener('click', function() {
   if (html5QrCode) { stopScanner(); return; }
   
@@ -229,9 +274,25 @@ document.getElementById('startScan').addEventListener('click', function() {
   document.getElementById('cameraIcon').style.display = 'none';
 
   html5QrCode = new Html5Qrcode("reader");
+  
+  // Explicitly configure supported formats for camera scanner
+  const config = {
+    fps: 15,
+    qrbox: { width: 280, height: 160 },
+    formatsToSupport: [
+      Html5QrcodeSupportedFormats.EAN_13,
+      Html5QrcodeSupportedFormats.EAN_8,
+      Html5QrcodeSupportedFormats.CODE_128,
+      Html5QrcodeSupportedFormats.CODE_39,
+      Html5QrcodeSupportedFormats.UPC_A,
+      Html5QrcodeSupportedFormats.UPC_E,
+      Html5QrcodeSupportedFormats.QR_CODE
+    ]
+  };
+
   html5QrCode.start(
     { facingMode: "environment" }, 
-    { fps: 10, qrbox: { width: 250, height: 150 } },
+    config,
     (decodedText) => {
       document.getElementById('fBarcode').value = decodedText;
       autoFill(decodedText);

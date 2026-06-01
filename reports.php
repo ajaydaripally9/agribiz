@@ -1,7 +1,7 @@
 <?php
 session_start();
-if (!isset($_SESSION['admin'])) { header('Location: index.php'); exit(); }
 include 'db.php';
+checkRole(['Admin', 'Accountant']);
 
 // CSV Export
 if (isset($_GET['export'])) {
@@ -100,6 +100,10 @@ body{background:var(--bg);color:var(--text);min-height:100vh;}
   <a href="dashboard.php" class="nav-item"><i class="fas fa-home"></i> Dashboard</a>
   <a href="manage_orders.php" class="nav-item"><i class="fas fa-clipboard-list"></i> Manage Orders</a>
   <a href="customers.php" class="nav-item"><i class="fas fa-users"></i> Customers</a>
+  <a href="gst_intel.php" class="nav-item"><i class="fas fa-search-dollar"></i> GST Intelligence</a>
+  <a href="receipts_payments.php" class="nav-item"><i class="fas fa-money-bill-transfer"></i> Vouchers Entry</a>
+  <a href="accounting_books.php" class="nav-item"><i class="fas fa-book"></i> Day/Cash Books</a>
+  <a href="gst_reports.php" class="nav-item"><i class="fas fa-percent"></i> GST Reports</a>
   <a href="suppliers.php" class="nav-item"><i class="fas fa-truck"></i> Suppliers</a>
   <a href="view_fertilizer.php" class="nav-item"><i class="fas fa-flask"></i> Fertilizers</a>
   <a href="sales.php" class="nav-item"><i class="fas fa-chart-bar"></i> Sales History</a>

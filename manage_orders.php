@@ -1,7 +1,7 @@
 <?php
 session_start();
-if (!isset($_SESSION['admin'])) { header('Location: index.php'); exit(); }
 include 'db.php';
+checkRole(['Admin', 'Billing Staff']);
 
 $message = '';
 $wa_link = '';
@@ -256,6 +256,222 @@ document.querySelectorAll('.tab').forEach(tab => {
     tab.classList.add('active');
     document.getElementById(tab.dataset.target).classList.add('active');
   });
+});
+</script>
+
+<!-- Mobile Phone Notification Simulator -->
+<style>
+.phone-overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.phone-frame {
+  width: 320px;
+  height: 580px;
+  background: #111;
+  border-radius: 40px;
+  border: 12px solid #222;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: phone-slide 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes phone-slide {
+  from { transform: translateY(100px) scale(0.9); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+.phone-notch {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 140px;
+  height: 20px;
+  background: #222;
+  border-radius: 0 0 16px 16px;
+  z-index: 100;
+}
+.phone-screen {
+  flex: 1;
+  background: #efeae2;
+  display: flex;
+  flex-direction: column;
+  padding-top: 20px;
+}
+.phone-header {
+  background: #075e54;
+  color: white;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.phone-header img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: white;
+}
+.phone-chat-body {
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+.phone-bubble {
+  max-width: 85%;
+  background: #dcf8c6;
+  color: #303030;
+  padding: 8px 12px;
+  border-radius: 12px 0 12px 12px;
+  align-self: flex-end;
+  font-size: 11.5px;
+  line-height: 1.4;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  position: relative;
+  animation: bubble-pop 0.3s ease-out;
+  text-align: left;
+}
+@keyframes bubble-pop {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.phone-bubble-time {
+  font-size: 8.5px;
+  color: #8c8c8c;
+  text-align: right;
+  margin-top: 4px;
+  font-weight: 600;
+}
+.phone-footer {
+  background: #f0f0f0;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px solid #e0e0e0;
+}
+.phone-input {
+  flex: 1;
+  background: white;
+  border-radius: 20px;
+  border: none;
+  padding: 6px 12px;
+  font-size: 11px;
+  text-align: left;
+  color: #8c8c8c;
+}
+.close-phone {
+  position: absolute;
+  top: -60px;
+  right: 0;
+  background: white;
+  color: #1e293b;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+</style>
+
+<div class="phone-overlay" id="phoneOverlay">
+  <div style="position:relative;">
+    <button class="close-phone" onclick="closePhoneSimulator()"><i class="fas fa-times"></i></button>
+    <div class="phone-frame">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+        <div class="phone-header">
+          <i class="fas fa-arrow-left" style="font-size:12px;"></i>
+          <div style="width:28px; height:28px; background:white; color:#075e54; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px;"><i class="fas fa-seedling"></i></div>
+          <div style="flex:1; text-align: left;">
+            <div style="font-size:12px; font-weight:800; color:white;">AgriBiz Center</div>
+            <div style="font-size:8px; color:#a7f3d0; font-weight:600;"><i class="fas fa-circle" style="font-size:5px; vertical-align:middle; margin-right:3px;"></i>Online</div>
+          </div>
+          <i class="fas fa-video" style="font-size:12px;"></i>
+          <i class="fas fa-phone" style="font-size:12px; margin-left:8px;"></i>
+        </div>
+        
+        <div class="phone-chat-body" id="phoneChatBody">
+          <!-- Text alerts dynamically slide in -->
+        </div>
+        
+        <div class="phone-footer">
+          <div class="phone-input">Type a message...</div>
+          <div style="width:30px; height:30px; background:#075e54; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px;"><i class="fas fa-microphone"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showPhoneSimulator(msgText) {
+  document.getElementById('phoneOverlay').style.display = 'flex';
+  const chat = document.getElementById('phoneChatBody');
+  chat.innerHTML = `
+    <div style="text-align:center; margin:10px 0;"><span style="background:rgba(255,255,255,0.7); font-size:9px; font-weight:700; color:#606060; padding:3px 8px; border-radius:8px;">TODAY</span></div>
+    <div style="background:#fff3c4; color:#505050; padding:6px; border-radius:8px; font-size:9px; text-align:center; line-height:1.2; margin-bottom:10px;">🔒 Messages and calls are end-to-end encrypted. No one outside of this chat can read or listen to them.</div>
+  `;
+  
+  // Audio chime
+  const sound = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
+  
+  setTimeout(() => {
+    sound.play().catch(()=>{});
+    const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    chat.innerHTML += `
+      <div class="phone-bubble">
+        ${msgText}
+        <div class="phone-bubble-time">${time} <i class="fas fa-check-double" style="color:#34b7f1; margin-left:3px;"></i></div>
+      </div>
+    `;
+    chat.scrollTop = chat.scrollHeight;
+  }, 800);
+}
+
+function closePhoneSimulator() {
+  document.getElementById('phoneOverlay').style.display = 'none';
+}
+
+// Hook all WhatsApp notify triggers
+document.addEventListener('DOMContentLoaded', () => {
+  const alertBox = document.querySelector('.alert');
+  if(alertBox) {
+    const notifyBtn = alertBox.querySelector('.btn');
+    if (notifyBtn && notifyBtn.href.includes('wa.me')) {
+      // Intercept click
+      notifyBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const url = new URL(notifyBtn.href);
+        const text = decodeURIComponent(url.searchParams.get('text'));
+        showPhoneSimulator(text);
+      });
+      // Auto-trigger for visual wow effect!
+      const url = new URL(notifyBtn.href);
+      const text = decodeURIComponent(url.searchParams.get('text'));
+      showPhoneSimulator(text);
+    }
+  }
 });
 </script>
 </body>

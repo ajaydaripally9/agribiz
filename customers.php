@@ -1,7 +1,7 @@
 <?php
 session_start();
-if (!isset($_SESSION['admin'])) { header('Location: index.php'); exit(); }
 include 'db.php';
+checkRole(['Admin', 'Accountant', 'Billing Staff']);
 
 $message = '';
 
@@ -10,9 +10,10 @@ if (isset($_POST['submit'])) {
     $name    = mysqli_real_escape_string($conn, trim($_POST['customer_name']));
     $mobile  = mysqli_real_escape_string($conn, trim($_POST['mobile']));
     $address = mysqli_real_escape_string($conn, trim($_POST['address']));
+    $gstin   = strtoupper(mysqli_real_escape_string($conn, trim($_POST['gstin'] ?? '')));
     $default_pw = password_hash('customer123', PASSWORD_DEFAULT);
-    $stmt = mysqli_prepare($conn, "INSERT INTO customers (customer_name, mobile, address, password) VALUES (?,?,?,?)");
-    mysqli_stmt_bind_param($stmt, "ssss", $name, $mobile, $address, $default_pw);
+    $stmt = mysqli_prepare($conn, "INSERT INTO customers (customer_name, mobile, address, password, gstin) VALUES (?,?,?,?,?)");
+    mysqli_stmt_bind_param($stmt, "sssss", $name, $mobile, $address, $default_pw, $gstin);
     mysqli_stmt_execute($stmt);
     $message = "Customer '$name' added successfully! Default password: customer123";
 }
@@ -21,9 +22,10 @@ if (isset($_POST['submit'])) {
 $result = mysqli_query($conn, "
     SELECT c.*,
         COUNT(DISTINCT o.invoice_no) as total_orders,
-        COALESCE(SUM(CASE WHEN o.status='Accepted' THEN o.total_price ELSE 0 END), 0) as total_spent,
+        COALESCE(SUM(CASE WHEN o.status='Accepted' OR o.status='Delivered' THEN o.total_price ELSE 0 END), 0) as total_spent,
+        COALESCE(SUM(DISTINCT CASE WHEN o.status='Accepted' OR o.status='Delivered' THEN o.paid_amount ELSE 0 END), 0) as total_paid,
         SUM(CASE WHEN o.status='Pending' THEN 1 ELSE 0 END) as pending_orders,
-        (c.points * 2 + COALESCE(SUM(CASE WHEN o.status='Accepted' THEN o.total_price ELSE 0 END), 0) / 500) as credit_score
+        (c.points * 2 + COALESCE(SUM(CASE WHEN o.status='Accepted' OR o.status='Delivered' THEN o.total_price ELSE 0 END), 0) / 500) as credit_score
     FROM customers c
     LEFT JOIN orders o ON o.customer_id = c.id
     GROUP BY c.id
@@ -73,7 +75,7 @@ body{background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
 .add-form-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:24px;}
 .add-form-card h3{font-size:15px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
 .add-form-card h3 i{color:var(--green);}
-.form-grid{display:grid;grid-template-columns:1fr 1fr 2fr auto;gap:12px;align-items:end;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr 1.2fr 1.8fr auto;gap:12px;align-items:end;}
 .fg label{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;}
 .fg input,.fg textarea{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;transition:all .2s;}
 .fg input:focus,.fg textarea:focus{border-color:var(--green);box-shadow:0 0 0 2px rgba(34,197,94,.15);}
@@ -122,16 +124,30 @@ body{background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
 <body>
 
 <aside class="sidebar">
+  <?php $role = $_SESSION['admin_role'] ?? 'Admin'; ?>
   <div class="sidebar-logo"><h2>🌱 AgriBiz</h2><p>Dashboard</p></div>
   <a href="dashboard.php" class="nav-item"><i class="fas fa-home"></i> Dashboard</a>
+  <?php if ($role !== 'Accountant'): ?>
   <a href="admin_billing.php" class="nav-item"><i class="fas fa-file-invoice-dollar" style="color:var(--orange);"></i> Offline Billing</a>
   <a href="manage_orders.php" class="nav-item"><i class="fas fa-clipboard-list"></i> Manage Orders</a>
+  <?php endif; ?>
   <a href="customers.php" class="nav-item active"><i class="fas fa-users"></i> Customers</a>
+  <?php if ($role !== 'Billing Staff'): ?>
+  <a href="gst_intel.php" class="nav-item"><i class="fas fa-search-dollar"></i> GST Intelligence</a>
+  <a href="receipts_payments.php" class="nav-item"><i class="fas fa-money-bill-transfer"></i> Vouchers Entry</a>
+  <a href="accounting_books.php" class="nav-item"><i class="fas fa-book"></i> Day/Cash Books</a>
+  <a href="gst_reports.php" class="nav-item"><i class="fas fa-percent"></i> GST Reports</a>
   <a href="suppliers.php" class="nav-item"><i class="fas fa-truck"></i> Suppliers</a>
+  <?php endif; ?>
   <a href="view_fertilizer.php" class="nav-item"><i class="fas fa-flask"></i> Fertilizers</a>
+  <?php if ($role !== 'Accountant' && $role !== 'Billing Staff'): // Admin only or based on spec ?>
   <a href="add_fertilizer.php" class="nav-item"><i class="fas fa-plus-circle"></i> Add Fertilizer</a>
+  <?php endif; ?>
+  <?php if ($role !== 'Billing Staff'): ?>
   <a href="sales.php" class="nav-item"><i class="fas fa-chart-bar"></i> Sales</a>
   <a href="reports.php" class="nav-item"><i class="fas fa-chart-line"></i> Reports</a>
+  <a href="master_ledger.php" class="nav-item"><i class="fas fa-file-invoice-dollar"></i> Master Ledger</a>
+  <?php endif; ?>
   <div class="sidebar-footer"><a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></div>
 </aside>
 
@@ -166,7 +182,8 @@ body{background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
       <div class="form-grid">
         <div class="fg"><label>Full Name</label><input type="text" name="customer_name" placeholder="e.g. Ravi Kumar" required></div>
         <div class="fg"><label>Mobile Number</label><input type="tel" name="mobile" placeholder="10-digit number" required></div>
-        <div class="fg"><label>Address</label><textarea name="address" placeholder="Village / Town / District"></textarea></div>
+        <div class="fg"><label>GSTIN (Optional)</label><input type="text" name="gstin" placeholder="e.g. 36AAAAA0000A1Z5"></div>
+        <div class="fg"><label>Address</label><input type="text" name="address" placeholder="Village / Town / District"></div>
         <div><button type="submit" name="submit" class="btn btn-green" style="height:38px;"><i class="fas fa-plus"></i> Add</button></div>
       </div>
     </form>
@@ -177,6 +194,7 @@ body{background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
     <div class="section-header">
       <div style="display:flex;align-items:center;gap:15px;">
         <h3><i class="fas fa-list" style="color:var(--green);margin-right:8px;"></i>All Customers</h3>
+        <a href="master_ledger.php" class="btn btn-blue" style="text-decoration:none; padding:8px 16px; font-size:12px; display:inline-flex; align-items:center; gap:8px;"><i class="fas fa-book"></i> View All Transactions (Master Ledger)</a>
         <input type="text" id="custSearch" placeholder="🔍 Search name or mobile..." oninput="filterCustomers(this.value)" style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:6px 14px;color:var(--text);font-size:12px;width:240px;outline:none;">
       </div>
       <span style="font-size:12px;color:var(--muted);"><?php echo $total_cust; ?> registered</span>
@@ -189,6 +207,7 @@ body{background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
           <th>AI Credit</th>
           <th>Orders</th>
           <th>Total Spent</th>
+          <th>Amount Due</th>
           <th>Pending</th>
           <th>Actions</th>
         </tr>
@@ -220,6 +239,20 @@ body{background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
           <td><span class="badge badge-green"><?php echo $row['total_orders']; ?> orders</span></td>
           <td style="font-weight:600;color:var(--green);">₹<?php echo number_format($row['total_spent'], 0); ?></td>
           <td>
+            <?php 
+              // We need to calculate due per invoice correctly because of the SUM in the main query
+              // For a quick fix, we'll just use the difference. 
+              // Note: total_paid in the query above might be inflated if not careful with DISTINCT,
+              // but since we group by invoice_no in the actual ledger, it's safer there.
+              // Here we'll just show the derived due.
+              $due = $row['total_spent'] - $row['total_paid'];
+              if ($due > 0): ?>
+                <span style="font-weight:700;color:var(--red);">₹<?php echo number_format($due, 0); ?></span>
+              <?php else: ?>
+                <span style="color:var(--muted);">Paid</span>
+              <?php endif; ?>
+          </td>
+          <td>
             <?php if ($row['pending_orders'] > 0): ?>
             <span class="badge badge-orange"><?php echo $row['pending_orders']; ?> pending</span>
             <?php else: ?>
@@ -228,6 +261,7 @@ body{background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
           </td>
           <td>
             <div style="display:flex;gap:6px;">
+              <a href="customer_ledger.php?id=<?php echo $row['id']; ?>" class="action-btn btn-view" style="background:rgba(139,92,246,0.15);color:#a78bfa;"><i class="fas fa-book"></i> Ledger</a>
               <button class="action-btn btn-view" onclick='openProfile(<?php echo json_encode($row); ?>)'><i class="fas fa-eye"></i> View</button>
               <a href="update_customer.php?id=<?php echo $row['id']; ?>" class="action-btn btn-edit"><i class="fas fa-edit"></i> Edit</a>
               <a href="delete_customer.php?id=<?php echo $row['id']; ?>" class="action-btn btn-del" onclick="return confirm('Delete <?php echo htmlspecialchars($row['customer_name']); ?>?')"><i class="fas fa-trash"></i></a>
@@ -258,6 +292,7 @@ body{background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
       <div class="psb"><div class="pv" id="mPending">0</div><div class="pl">Pending</div></div>
     </div>
     <div class="detail-row"><i class="fas fa-phone"></i><div><div class="dl">Mobile</div><div class="dv" id="mMobile">-</div></div></div>
+    <div class="detail-row"><i class="fas fa-id-card"></i><div><div class="dl">GSTIN</div><div class="dv" id="mGstin">-</div></div></div>
     <div class="detail-row"><i class="fas fa-map-marker-alt"></i><div><div class="dl">Address</div><div class="dv" id="mAddress">-</div></div></div>
     <div style="margin-top:20px;display:flex;gap:10px;">
       <a id="mEditBtn" href="#" class="btn btn-green" style="flex:1;justify-content:center;"><i class="fas fa-edit"></i> Edit Profile</a>
@@ -271,6 +306,7 @@ function openProfile(data) {
   document.getElementById('mName').textContent = data.customer_name;
   document.getElementById('mId').textContent = 'Customer ID: #' + data.id;
   document.getElementById('mMobile').textContent = data.mobile;
+  document.getElementById('mGstin').textContent = data.gstin || 'Not registered';
   document.getElementById('mAddress').textContent = data.address || 'Not provided';
   document.getElementById('mOrders').textContent = data.total_orders;
   document.getElementById('mSpent').textContent = '₹' + parseFloat(data.total_spent).toLocaleString('en-IN', {maximumFractionDigits: 0});

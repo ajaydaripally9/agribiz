@@ -1,10 +1,7 @@
 <?php
 session_start();
-if(!isset($_SESSION['admin'])){
-    header('Location: index.php');
-    exit();
-}
 include 'db.php';
+checkRole(['Admin', 'Accountant']);
 
 if(isset($_POST['submit'])){
     $name = $_POST['supplier_name'];

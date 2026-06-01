@@ -1,7 +1,7 @@
 <?php
 session_start();
-if (!isset($_SESSION['admin'])) { header('Location: index.php'); exit(); }
 include 'db.php';
+checkRole(['Admin', 'Accountant', 'Billing Staff']);
 
 $id = intval($_GET['id'] ?? 0);
 if (!$id) { header('Location: customers.php'); exit(); }
@@ -19,6 +19,7 @@ if (isset($_POST['update'])) {
     $name    = trim($_POST['customer_name']);
     $mobile  = trim($_POST['mobile']);
     $address = trim($_POST['address']);
+    $gstin   = strtoupper(trim($_POST['gstin'] ?? ''));
     $new_pw  = $_POST['new_password'];
 
     if (!$name || !$mobile) {
@@ -27,11 +28,11 @@ if (isset($_POST['update'])) {
     } else {
         if ($new_pw) {
             $hashed = password_hash($new_pw, PASSWORD_DEFAULT);
-            $upd = mysqli_prepare($conn, "UPDATE customers SET customer_name=?, mobile=?, address=?, password=? WHERE id=?");
-            mysqli_stmt_bind_param($upd, "ssssi", $name, $mobile, $address, $hashed, $id);
+            $upd = mysqli_prepare($conn, "UPDATE customers SET customer_name=?, mobile=?, address=?, password=?, gstin=? WHERE id=?");
+            mysqli_stmt_bind_param($upd, "sssssi", $name, $mobile, $address, $hashed, $gstin, $id);
         } else {
-            $upd = mysqli_prepare($conn, "UPDATE customers SET customer_name=?, mobile=?, address=? WHERE id=?");
-            mysqli_stmt_bind_param($upd, "sssi", $name, $mobile, $address, $id);
+            $upd = mysqli_prepare($conn, "UPDATE customers SET customer_name=?, mobile=?, address=?, gstin=? WHERE id=?");
+            mysqli_stmt_bind_param($upd, "ssssi", $name, $mobile, $address, $gstin, $id);
         }
         mysqli_stmt_execute($upd);
         header('Location: customers.php?updated=' . urlencode($name));
@@ -137,6 +138,10 @@ body{background:var(--bg);color:var(--text);min-height:100vh;}
         <div class="form-group">
           <label>Mobile Number</label>
           <input type="tel" name="mobile" value="<?php echo htmlspecialchars($row['mobile']); ?>" required>
+        </div>
+        <div class="form-group">
+          <label>GSTIN (GST Number)</label>
+          <input type="text" name="gstin" value="<?php echo htmlspecialchars($row['gstin'] ?? ''); ?>" placeholder="e.g. 36AAAAA0000A1Z5">
         </div>
         <div class="form-group">
           <label>Address</label>

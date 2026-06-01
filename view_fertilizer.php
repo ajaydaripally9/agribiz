@@ -1,10 +1,7 @@
 <?php
 session_start();
-if(!isset($_SESSION['admin'])){
-    header('Location: index.php');
-    exit();
-}
 include 'db.php';
+checkRole(['Admin', 'Accountant', 'Billing Staff']);
 
 $search = isset($_GET['search']) ? $_GET['search'] : '';
 $query = "SELECT * FROM fertilizers WHERE fertilizer_name LIKE '%$search%' OR company_name LIKE '%$search%'";
