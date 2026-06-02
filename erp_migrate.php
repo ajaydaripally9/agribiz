@@ -1,7 +1,12 @@
 <?php
 // erp_migrate.php — Run all DB schema migrations (idempotent, safe to run multiple times)
-session_start();
-if (!isset($_SESSION['admin'])) { header('Location: index.php'); exit(); }
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (php_sapi_name() !== 'cli' && !isset($_SESSION['admin'])) {
+    header('Location: index.php');
+    exit();
+}
 include 'db.php';
 
 $migrations = [
