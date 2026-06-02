@@ -19,14 +19,14 @@ if (isset($_POST['submit'])) {
     $npk      = mysqli_real_escape_string($conn, $_POST['npk_ratio'] ?? '');
     $weight   = mysqli_real_escape_string($conn, $_POST['weight'] ?? '');
     $batch    = mysqli_real_escape_string($conn, $_POST['batch_no'] ?? '');
-    $mfg      = mysqli_real_escape_string($conn, $_POST['mfg_date'] ?? '');
-    $expiry   = mysqli_real_escape_string($conn, $_POST['expiry_date'] ?? '');
+    $mfg      = !empty($_POST['mfg_date']) ? "'" . mysqli_real_escape_string($conn, $_POST['mfg_date']) . "'" : "NULL";
+    $expiry   = !empty($_POST['expiry_date']) ? "'" . mysqli_real_escape_string($conn, $_POST['expiry_date']) . "'" : "NULL";
     $pur_price = floatval($_POST['purchase_price'] ?? 0);
     $hsn_code  = mysqli_real_escape_string($conn, $_POST['hsn_code'] ?? '');
     $reorder_level = intval($_POST['reorder_level'] ?? 10);
 
     $query = "INSERT INTO fertilizers (barcode, fertilizer_name, company_name, quantity, price, category, batch_no, mfg_date, expiry_date, purchase_price, hsn_code, reorder_level) 
-              VALUES ('$barcode', '$name', '$company', '$quantity', '$price', '$category', '$batch', '$mfg', '$expiry', '$pur_price', '$hsn_code', '$reorder_level')";
+              VALUES ('$barcode', '$name', '$company', '$quantity', '$price', '$category', '$batch', $mfg, $expiry, '$pur_price', '$hsn_code', '$reorder_level')";
     
     if (mysqli_query($conn, $query)) {
         $message = "Product '$name' added successfully to inventory!";

@@ -13,13 +13,13 @@ if(isset($_POST['update'])){
     $price = floatval($_POST['price']);
     $category = mysqli_real_escape_string($conn, $_POST['category']);
     $batch = mysqli_real_escape_string($conn, $_POST['batch_no'] ?? '');
-    $mfg = mysqli_real_escape_string($conn, $_POST['mfg_date'] ?? '');
-    $expiry = mysqli_real_escape_string($conn, $_POST['expiry_date'] ?? '');
+    $mfg = !empty($_POST['mfg_date']) ? "'" . mysqli_real_escape_string($conn, $_POST['mfg_date']) . "'" : "NULL";
+    $expiry = !empty($_POST['expiry_date']) ? "'" . mysqli_real_escape_string($conn, $_POST['expiry_date']) . "'" : "NULL";
     $pur_price = floatval($_POST['purchase_price'] ?? 0);
     $hsn_code = mysqli_real_escape_string($conn, $_POST['hsn_code'] ?? '');
     $reorder_level = intval($_POST['reorder_level'] ?? 10);
 
-    $query = "UPDATE fertilizers SET fertilizer_name='$name', company_name='$company', quantity='$quantity', price='$price', category='$category', batch_no='$batch', mfg_date='$mfg', expiry_date='$expiry', purchase_price='$pur_price', hsn_code='$hsn_code', reorder_level='$reorder_level' WHERE id=$id";
+    $query = "UPDATE fertilizers SET fertilizer_name='$name', company_name='$company', quantity='$quantity', price='$price', category='$category', batch_no='$batch', mfg_date=$mfg, expiry_date=$expiry, purchase_price='$pur_price', hsn_code='$hsn_code', reorder_level='$reorder_level' WHERE id=$id";
     mysqli_query($conn, $query);
     header('Location: view_fertilizer.php');
     exit();
