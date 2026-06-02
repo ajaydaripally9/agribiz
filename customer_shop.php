@@ -312,6 +312,129 @@ body { background: var(--bg); color: var(--text-dark); padding-bottom: 80px; }
 /* Dark Mode Toggle */
 .dark-toggle { background: var(--white); border: 1px solid var(--border); border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; transition: 0.2s; }
 .dark-toggle:hover { background: var(--primary-light); }
+
+/* Premium Responsive Mandi Modal / Bottom Sheet */
+.mandi-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  transition: opacity 0.3s ease;
+}
+
+.mandi-container {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  width: 100%;
+  max-width: 440px;
+  max-height: 75vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mandi-drag-handle {
+  display: none;
+}
+
+.mandi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--white);
+}
+
+.mandi-header h2 {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--primary-dark);
+}
+
+.mandi-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 24px 24px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mandi-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.mandi-table th {
+  padding: 10px 12px;
+  text-align: left;
+  background: var(--bg);
+  color: var(--text-gray);
+  font-weight: 700;
+  border-bottom: 1px solid var(--border);
+}
+
+.mandi-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dark);
+}
+
+.mandi-footer-info {
+  margin-top: 20px;
+  padding: 15px;
+  background: var(--primary-light);
+  border-radius: 16px;
+  border: 1px solid rgba(34,197,94,0.2);
+  font-size: 12px;
+  color: var(--primary-dark);
+  display: flex;
+  gap: 10px;
+}
+
+/* Mobile responsive bottom drawer */
+@media (max-width: 640px) {
+  .mandi-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+  
+  .mandi-container {
+    border-radius: 24px 24px 0 0;
+    max-height: 85vh;
+    border-bottom: none;
+    transform: translateY(0);
+    animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .mandi-drag-handle {
+    display: block;
+    width: 40px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 12px auto 4px auto;
+    flex-shrink: 0;
+  }
+  
+  .mandi-header {
+    padding-top: 8px;
+  }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
 </style>
 </head>
 <body>
@@ -1146,26 +1269,29 @@ function toggleDark() {
 })();
 </script>
 
-<!-- MANDI MODAL -->
-<div id="mandiModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center; padding:20px;">
-  <div style="background:white; border-radius:30px; width:100%; max-width:400px; max-height:80vh; overflow-y:auto; padding:25px; box-shadow:0 25px 50px rgba(0,0,0,0.3);">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; position:sticky; top:0; background:white; padding-bottom:10px; border-bottom:1px solid #f1f5f9;">
-      <h2 style="font-size:18px; font-weight:800; color:var(--primary-dark);" id="mModalTitle">Full Market Report</h2>
-      <button onclick="closeMandiModal()" style="background:#f1f5f9; border:none; width:30px; height:30px; border-radius:50%; cursor:pointer;"><i class="fas fa-times"></i></button>
+<!-- MANDI MODAL / BOTTOM SHEET -->
+<div id="mandiModal" class="mandi-backdrop" style="display:none;" onclick="if(event.target===this) closeMandiModal()">
+  <div class="mandi-container">
+    <div class="mandi-drag-handle"></div>
+    <div class="mandi-header">
+      <h2 id="mModalTitle">Full Market Report</h2>
+      <button onclick="closeMandiModal()" style="background:var(--border); border:none; width:30px; height:30px; border-radius:50%; cursor:pointer; color:var(--text-dark); display:flex; align-items:center; justify-content:center;"><i class="fas fa-times"></i></button>
     </div>
-    <div style="font-size:11px; color:#64748b; margin-bottom:15px; display:flex; align-items:center; gap:5px;"><i class="fas fa-map-marker-alt"></i> Siddipet Mandi, Telangana</div>
-    <table style="width:100%; border-collapse:collapse; font-size:14px;">
-      <thead style="background:#f8fafc;">
-        <tr>
-          <th style="padding:10px; text-align:left; border-radius:10px 0 0 10px;" id="mThComm">Commodity</th>
-          <th style="padding:10px; text-align:right; border-radius:0 10px 10px 0;" id="mThPrice">Price</th>
-        </tr>
-      </thead>
-      <tbody id="mandiFullTable"></tbody>
-    </table>
-    <div style="margin-top:20px; padding:15px; background:#f0fdf4; border-radius:15px; border:1px solid #bbf7d0; font-size:12px; color:#166534; display:flex; gap:10px;">
-      <i class="fas fa-info-circle" style="margin-top:3px;"></i>
-      <span>Prices are updated hourly based on Agmarknet Siddipet reports.</span>
+    <div class="mandi-body">
+      <div style="font-size:11px; color:var(--text-gray); margin-bottom:15px; display:flex; align-items:center; gap:5px;"><i class="fas fa-map-marker-alt"></i> Siddipet Mandi, Telangana</div>
+      <table class="mandi-table">
+        <thead>
+          <tr>
+            <th style="border-radius:10px 0 0 10px;" id="mThComm">Commodity</th>
+            <th style="text-align:right; border-radius:0 10px 10px 0;" id="mThPrice">Price</th>
+          </tr>
+        </thead>
+        <tbody id="mandiFullTable"></tbody>
+      </table>
+      <div class="mandi-footer-info">
+        <i class="fas fa-info-circle" style="margin-top:3px;"></i>
+        <span>Prices are updated hourly based on Agmarknet Siddipet reports.</span>
+      </div>
     </div>
   </div>
 </div>
