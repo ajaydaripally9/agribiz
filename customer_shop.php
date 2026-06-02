@@ -435,6 +435,20 @@ body { background: var(--bg); color: var(--text-dark); padding-bottom: 80px; }
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
 }
+.live-mandi-container::-webkit-scrollbar {
+  width: 4px;
+}
+.live-mandi-container::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.02);
+  border-radius: 4px;
+}
+.live-mandi-container::-webkit-scrollbar-thumb {
+  background: rgba(34,197,94,0.3);
+  border-radius: 4px;
+}
+.live-mandi-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(34,197,94,0.5);
+}
 </style>
 </head>
 <body>
@@ -469,7 +483,7 @@ body { background: var(--bg); color: var(--text-dark); padding-bottom: 80px; }
             <div style="width:35px; height:35px; background:rgba(34,197,94,0.2); border-radius:10px; display:flex; align-items:center; justify-content:center; color:#22c55e;"><i class="fas fa-landmark"></i></div>
             <h3 style="font-size:16px; font-weight:800;" id="mandiTitle">Live Mandi Prices</h3>
           </div>
-          <div style="display:flex; flex-direction:column; gap:10px;" id="mandiList">
+          <div style="display:flex; flex-direction:column; gap:10px; height:120px; overflow-y:auto; -webkit-overflow-scrolling:touch; padding-right:5px; scroll-behavior:smooth;" id="mandiList" class="live-mandi-container">
             <div style="font-size:12px; opacity:0.5;">Loading Siddipet Mandi data...</div>
           </div>
         </div>
@@ -1192,6 +1206,7 @@ async function fetchWeatherAdvisory() {
   } catch(e) { console.error("Weather advisory error", e); }
 }
 
+let mandiInterval = null;
 async function fetchMandiPrices() {
   try {
     const res = await fetch('api_mandi_prices.php');
@@ -1199,19 +1214,40 @@ async function fetchMandiPrices() {
     if(data.status === 'success') {
       const list = document.getElementById('mandiList');
       list.innerHTML = '';
-      data.data.slice(0, 3).forEach(item => {
+      data.data.forEach(item => {
         const name = currentLang === 'te' ? item.commodity_te : item.commodity;
         const trendIcon = item.trend === 'up' ? 'fa-caret-up' : (item.trend === 'down' ? 'fa-caret-down' : 'fa-minus');
         const trendColor = item.trend === 'up' ? '#22c55e' : (item.trend === 'down' ? '#ef4444' : '#94a3b8');
         list.innerHTML += `
-          <div style="background:rgba(255,255,255,0.05); padding:10px 15px; border-radius:15px; display:flex; justify-content:space-between; align-items:center;">
+          <div style="background:rgba(255,255,255,0.05); padding:10px 15px; border-radius:15px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
             <span style="font-size:13px; font-weight:600; color:#94a3b8;">${name}</span>
             <span style="font-size:14px; font-weight:800; color:${trendColor};">₹${item.price}/${item.unit} <i class="fas ${trendIcon}"></i></span>
           </div>
         `;
       });
+      initMandiAutoScroll();
     }
   } catch(e) { console.error("Mandi fetch error", e); }
+}
+
+function initMandiAutoScroll() {
+  const container = document.getElementById('mandiList');
+  if(!container) return;
+  if(mandiInterval) clearInterval(mandiInterval);
+  
+  let isHovered = false;
+  container.addEventListener('mouseenter', () => isHovered = true);
+  container.addEventListener('mouseleave', () => isHovered = false);
+  container.addEventListener('touchstart', () => isHovered = true, { passive: true });
+  container.addEventListener('touchend', () => isHovered = false, { passive: true });
+
+  mandiInterval = setInterval(() => {
+    if(isHovered) return;
+    container.scrollTop += 1;
+    if(container.scrollTop + container.clientHeight >= container.scrollHeight - 1) {
+      container.scrollTop = 0;
+    }
+  }, 40);
 }
 
 async function openMandiModal() {
