@@ -8,7 +8,7 @@ export default defineConfig({
   server: {
     proxy: {
       '^/.*\\.php': {
-        target: 'http://localhost:8000',
+        target: 'http://localhost/fertilizer-shop',
         changeOrigin: true,
       }
     }
