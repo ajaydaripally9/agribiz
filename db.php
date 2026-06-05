@@ -1,4 +1,37 @@
 <?php
+function loadDotenv(string $path): void {
+    if (!file_exists($path)) {
+        return;
+    }
+
+    $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if ($line === '' || str_starts_with($line, '#')) {
+            continue;
+        }
+
+        if (!str_contains($line, '=')) {
+            continue;
+        }
+
+        [$key, $value] = explode('=', $line, 2);
+        $key = trim($key);
+        $value = trim($value);
+        if ($value === 'null') {
+            $value = '';
+        }
+
+        if (getenv($key) === false) {
+            putenv("$key=$value");
+        }
+        $_ENV[$key] = $value;
+        $_SERVER[$key] = $value;
+    }
+}
+
+loadDotenv(__DIR__ . '/.env');
+
 $host = $_SERVER['DB_HOST'] ?? $_ENV['DB_HOST'] ?? getenv('DB_HOST') ?: '127.0.0.1';
 $port = $_SERVER['DB_PORT'] ?? $_ENV['DB_PORT'] ?? getenv('DB_PORT') ?: '3307';
 $user = $_SERVER['DB_USER'] ?? $_ENV['DB_USER'] ?? getenv('DB_USER') ?: 'root';

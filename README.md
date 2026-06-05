@@ -16,28 +16,40 @@ Or run the project with the built-in PHP server:
 
 Then open `http://localhost:8000` in the browser.
 
-If your MySQL root user has a password, update `db.php` with the correct credentials or set these environment variables before running the project:
-- `DB_HOST`
-- `DB_PORT`
-- `DB_USER`
-- `DB_PASSWORD`
-- `DB_NAME`
+This repo supports a local `.env` file for the PHP backend and a frontend `.env` file for Vite.
 
-If you have XAMPP installed and the default MySQL service is already in use, you can start XAMPP MySQL on a second port such as 3307 and then set `DB_PORT=3307`.
+### Backend local environment
+Create a root `.env` file next to `db.php` with values like:
 
-Example for XAMPP alternate MySQL port:
+```text
+DB_HOST=127.0.0.1
+DB_PORT=3307
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=fertilizer_shop
+VITE_API_BASE_URL=
+```
 
-    "C:\xampp\mysql\bin\mysqld.exe" --defaults-file="C:\xampp\mysql\bin\my.ini" --port=3307 --socket="C:/xampp/mysql/mysql2.sock"
+The PHP app will automatically load `.env` values if the file exists.
 
-Then use:
+### Frontend local environment
+Create `greengrow-frontend/.env` with:
 
-- `DB_HOST=127.0.0.1`
-- `DB_PORT=3307`
-- `DB_USER=root`
-- `DB_PASSWORD=` (blank)
-- `DB_NAME=fertilizer_shop`
+```text
+VITE_API_BASE_URL=
+```
+
+Leave it blank for local development because Vite proxies `.php` requests to `http://localhost:8000`.
 
 If you are deploying the React frontend separately (for example, on Render), set the frontend environment variable `VITE_API_BASE_URL` to the URL of your PHP backend. This ensures the React app can call `api_login.php` and other PHP endpoints correctly in production.
+
+### GitHub Actions / Render environment setup
+The existing CI workflow now reads these secrets if they are configured in GitHub:
+- `VITE_API_BASE_URL`
+- `RENDER_API_KEY`
+- `RENDER_SERVICE_ID`
+
+If you set `RENDER_API_KEY` and `RENDER_SERVICE_ID`, the workflow will deploy the frontend service automatically after a successful build.
 
 ### Render deployment checklist
 

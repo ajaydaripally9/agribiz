@@ -21,6 +21,13 @@ The React frontend uses `VITE_API_BASE_URL` to construct backend API requests in
 - Set `VITE_API_BASE_URL` to your PHP backend root URL when the frontend and backend are deployed separately.
 - Leave it blank when the frontend is served from the same origin as the PHP backend.
 - In Render, configure this variable in the frontend service environment settings and rebuild/deploy the app.
+- For local development, create `greengrow-frontend/.env` with:
+
+```text
+VITE_API_BASE_URL=
+```
+
+This keeps local requests proxied through Vite to `http://localhost:8000`.
 
 ## Deploying on Render
 
