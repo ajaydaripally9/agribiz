@@ -12,9 +12,12 @@ function LoginCard() {
 
   // If the React app and the PHP backend are deployed separately,
   // set VITE_API_BASE_URL to the backend root URL in Render / production.
-  // When both are hosted together on the same origin, leave this empty.
+  // For local development, VITE_API_BASE_URL can be blank or set to
+  // http://localhost:8000. The code will fallback to the local PHP server
+  // during dev if the variable is empty.
   const rawApiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim() || '';
-  const apiBaseUrl = rawApiBaseUrl.replace(/\/$/, '');
+  const defaultDevApiBaseUrl = import.meta.env.DEV ? 'http://localhost:8000' : '';
+  const apiBaseUrl = (rawApiBaseUrl || defaultDevApiBaseUrl).replace(/\/$/, '');
   const apiLoginUrl = `${apiBaseUrl ? `${apiBaseUrl}/` : ''}api_login.php`;
 
   if (import.meta.env.PROD && apiBaseUrl && /(localhost|127\.0\.0\.1)/.test(apiBaseUrl)) {
