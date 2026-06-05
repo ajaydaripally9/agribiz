@@ -10,8 +10,12 @@ export default defineConfig({
     // This proxy is not used in a Render production deployment.
     proxy: {
       '^/.*\\.php': {
-        target: 'http://localhost/fertilizer-shop',
+        // Point to the local PHP dev server. If you run PHP with
+        // `php -S localhost:8000 -t .` the backend will be available at port 8000.
+        // Adjust this if you use a different local dev server or port.
+        target: 'http://localhost:8000',
         changeOrigin: true,
+        secure: false,
       }
     }
   }
