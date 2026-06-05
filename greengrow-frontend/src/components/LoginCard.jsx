@@ -10,13 +10,26 @@ function LoginCard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // If the React app and the PHP backend are deployed separately,
+  // set VITE_API_BASE_URL to the backend root URL in Render / production.
+  // When both are hosted together on the same origin, leave this empty.
+  const rawApiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim() || '';
+  const apiBaseUrl = rawApiBaseUrl.replace(/\/$/, '');
+  const apiLoginUrl = `${apiBaseUrl ? `${apiBaseUrl}/` : ''}api_login.php`;
+
+  if (import.meta.env.PROD && apiBaseUrl && /(localhost|127\.0\.0\.1)/.test(apiBaseUrl)) {
+    console.warn(
+      'VITE_API_BASE_URL is configured for localhost in production. Update it to your Render backend URL.'
+    );
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      const res = await fetch('api_login.php', {
+      const res = await fetch(apiLoginUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -29,7 +42,9 @@ function LoginCard() {
         setError(data.message || 'Login failed. Please try again.');
       }
     } catch (err) {
-      setError('Connection error. Make sure the PHP server is running.');
+      setError(
+        'Connection error. Make sure the PHP server is running and VITE_API_BASE_URL is set correctly for your backend.'
+      );
     } finally {
       setLoading(false);
     }

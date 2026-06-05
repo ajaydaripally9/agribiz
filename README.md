@@ -37,6 +37,15 @@ Then use:
 - `DB_PASSWORD=` (blank)
 - `DB_NAME=fertilizer_shop`
 
+If you are deploying the React frontend separately (for example, on Render), set the frontend environment variable `VITE_API_BASE_URL` to the URL of your PHP backend. This ensures the React app can call `api_login.php` and other PHP endpoints correctly in production.
+
+### Render deployment checklist
+
+- Set `VITE_API_BASE_URL=https://<your-backend-service>.onrender.com` in the Render frontend service environment variables.
+- Rebuild/redeploy the frontend service after changing the variable.
+- Verify the backend service is live and reachable from the deployed frontend.
+- Do not rely on the local Vite proxy in production; it only works during local development.
+
 If PHP is not on your PATH, run the app with XAMPP PHP:
 
     "C:\xampp\php\php.exe" -S localhost:8000
