@@ -1,14 +1,627 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AgriBiz Pro — Advanced Farmer Intelligence</title>
-    <script type="module" crossorigin src="/assets/index-Bfzc5VEu.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-Sy-9Tcww.css">
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — AgriBiz Pro</title>
+  <meta name="description" content="Secure login page for AgriBiz Pro - Advanced Farmer Intelligence portal. Access your customer dashboard or shop management system.">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #080c14 0%, #0f172a 50%, #080c14 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      color: #e6edf3;
+    }
+
+    /* Floating particles background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: 
+        radial-gradient(circle at 15% 50%, rgba(34, 197, 94, 0.05) 0%, transparent 45%),
+        radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.05) 0%, transparent 45%);
+      pointer-events: none;
+    }
+
+    .particle {
+      position: fixed;
+      border-radius: 50%;
+      background: rgba(34, 197, 94, 0.12);
+      animation: float linear infinite;
+      pointer-events: none;
+    }
+
+    .particle.blue {
+      background: rgba(59, 130, 246, 0.12);
+    }
+
+    @keyframes float {
+      0% {
+        transform: translateY(105vh) rotate(0deg) scale(0.8);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 0.6;
+      }
+      100% {
+        transform: translateY(-10vh) rotate(360deg) scale(1.2);
+        opacity: 0;
+      }
+    }
+
+    .card {
+      width: 100%;
+      max-width: 440px;
+      background: rgba(22, 27, 34, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      padding: 36px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      position: relative;
+      z-index: 10;
+      transition: border-color 0.5s ease, box-shadow 0.5s ease;
+    }
+
+    /* Green glow for customer mode, blue glow for admin mode */
+    .card.mode-customer {
+      border-color: rgba(34, 197, 94, 0.25);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 40px rgba(34, 197, 94, 0.05);
+    }
+
+    .card.mode-admin {
+      border-color: rgba(59, 130, 246, 0.25);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 40px rgba(59, 130, 246, 0.05);
+    }
+
+    /* Header */
+    .card-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .logo-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #15803d, #22c55e);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: white;
+      transition: background 0.3s ease;
+    }
+
+    .card.mode-admin .logo-icon {
+      background: linear-gradient(135deg, #1e40af, #3b82f6);
+    }
+
+    .logo-text {
+      font-size: 20px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-text span {
+      color: #22c55e;
+      transition: color 0.3s ease;
+    }
+
+    .card.mode-admin .logo-text span {
+      color: #3b82f6;
+    }
+
+    .card-header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 6px;
+      border: none;
+      padding: 0;
+    }
+
+    .card-header p {
+      font-size: 13px;
+      color: #8b949e;
+    }
+
+    /* Tabs/Role Switcher */
+    .role-switcher {
+      display: flex;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 4px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 24px;
+    }
+
+    .role-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #8b949e;
+      padding: 10px;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin: 0;
+      transition: all 0.25s ease;
+    }
+
+    .role-btn:hover {
+      color: #ffffff;
+    }
+
+    .role-btn.active[data-role="customer"] {
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #22c55e;
+      box-shadow: 0 0 15px rgba(34, 197, 94, 0.1);
+    }
+
+    .role-btn.active[data-role="admin"] {
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #3b82f6;
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.1);
+    }
+
+    /* Alerts */
+    .alert {
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 20px;
+      display: none;
+      align-items: flex-start;
+      gap: 10px;
+      line-height: 1.4;
+      animation: slideIn 0.3s ease forwards;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .alert.error {
+      background: rgba(239, 68, 68, 0.1);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.25);
+    }
+
+    /* Form Fields */
+    .form-group {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #8b949e;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-wrap i.field-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #8b949e;
+      font-size: 14px;
+      transition: color 0.2s ease;
+    }
+
+    .form-group input {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 13px 44px 13px 42px;
+      color: #ffffff;
+      font-size: 14.5px;
+      outline: none;
+      margin: 0;
+      transition: all 0.2s ease;
+    }
+
+    .card.mode-customer .form-group input:focus {
+      border-color: rgba(34, 197, 94, 0.5);
+      background: rgba(34, 197, 94, 0.03);
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.08);
+    }
+
+    .card.mode-admin .form-group input:focus {
+      border-color: rgba(59, 130, 246, 0.5);
+      background: rgba(59, 130, 246, 0.03);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+    }
+
+    .card.mode-customer .form-group input:focus ~ i.field-icon {
+      color: #22c55e;
+    }
+
+    .card.mode-admin .form-group input:focus ~ i.field-icon {
+      color: #3b82f6;
+    }
+
+    .pw-toggle {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #8b949e;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 4px;
+      transition: color 0.2s ease;
+    }
+
+    .pw-toggle:hover {
+      color: #ffffff;
+    }
+
+    /* Actions */
+    .form-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+
+    .form-actions a {
+      color: #8b949e;
+      text-decoration: none;
+      padding: 0;
+      margin: 0;
+      transition: color 0.2s ease;
+    }
+
+    .form-actions a:hover {
+      color: #ffffff;
+      background: transparent;
+    }
+
+    .card.mode-customer .form-actions a.highlight {
+      color: #22c55e;
+      font-weight: 600;
+    }
+    
+    .card.mode-customer .form-actions a.highlight:hover {
+      color: #4ade80;
+      text-decoration: underline;
+    }
+
+    .btn-submit {
+      width: 100%;
+      border: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: #ffffff;
+      transition: all 0.25s ease;
+    }
+
+    .card.mode-customer .btn-submit {
+      background: linear-gradient(135deg, #15803d, #22c55e);
+      box-shadow: 0 4px 20px rgba(34, 197, 94, 0.15);
+    }
+
+    .card.mode-customer .btn-submit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 25px rgba(34, 197, 94, 0.3);
+    }
+
+    .card.mode-admin .btn-submit {
+      background: linear-gradient(135deg, #1e40af, #3b82f6);
+      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+    }
+
+    .card.mode-admin .btn-submit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 25px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-submit:active {
+      transform: translateY(1px);
+    }
+
+    .btn-submit i.spinner {
+      animation: spin 0.8s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Footer Info */
+    .card-footer {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .card-footer i {
+      color: #22c55e;
+      font-size: 16px;
+      margin-top: 2px;
+      transition: color 0.3s ease;
+    }
+
+    .card.mode-admin .card-footer i {
+      color: #3b82f6;
+    }
+
+    .card-footer div {
+      font-size: 11.5px;
+      color: #8b949e;
+      line-height: 1.4;
+    }
+
+    .card-footer h4 {
+      font-size: 12px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 2px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating background particles -->
+  <div id="particles-container"></div>
+  <script>
+    const container = document.getElementById('particles-container');
+    const particleCount = 10;
+    for (let i = 0; i < particleCount; i++) {
+      const p = document.createElement('div');
+      const isBlue = Math.random() > 0.6;
+      p.className = `particle${isBlue ? ' blue' : ''}`;
+      const size = Math.random() * 6 + 4;
+      p.style.width = `${size}px`;
+      p.style.height = `${size}px`;
+      p.style.left = `${Math.random() * 100}%`;
+      p.style.animationDuration = `${Math.random() * 15 + 12}s`;
+      p.style.animationDelay = `${Math.random() * 8}s`;
+      container.appendChild(p);
+    }
+  </script>
+
+  <main>
+    <div class="card mode-customer" id="loginCard">
+      <div class="card-header">
+        <div class="logo">
+          <div class="logo-icon" id="logoIcon"><i class="fas fa-seedling"></i></div>
+          <div class="logo-text">AgriBiz <span>Pro</span></div>
+        </div>
+        <h1 id="headerTitle">Welcome Back 🍃</h1>
+        <p id="headerSub">Sign in to your account</p>
+      </div>
+
+      <!-- Role Selector -->
+      <div class="role-switcher">
+        <button type="button" class="role-btn active" id="roleCustomer" data-role="customer">
+          <i class="fas fa-shopping-basket"></i> Customer
+        </button>
+        <button type="button" class="role-btn" id="roleAdmin" data-role="admin">
+          <i class="fas fa-user-shield"></i> Admin
+        </button>
+      </div>
+
+      <!-- Alert Message -->
+      <div class="alert error" id="loginAlert">
+        <i class="fas fa-exclamation-circle"></i>
+        <span id="alertText">Connection error occurred.</span>
+      </div>
+
+      <form id="loginForm" autocomplete="on">
+        <input type="hidden" name="type" id="loginType" value="customer">
+
+        <div class="form-group">
+          <label id="identifierLabel">Mobile Number</label>
+          <div class="input-wrap">
+            <i class="fas fa-phone field-icon" id="identifierIcon"></i>
+            <input type="text" name="identifier" id="loginIdentifier" placeholder="Enter your mobile number" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Password</label>
+          <div class="input-wrap">
+            <i class="fas fa-lock field-icon"></i>
+            <input type="password" name="password" id="loginPassword" placeholder="Enter your password" required>
+            <span class="pw-toggle" id="passwordToggle"><i class="fas fa-eye-slash"></i></span>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <a href="/customer_register" class="highlight" id="signUpLink">New? Register here</a>
+          <a href="#" id="forgotPasswordLink">Forgot Password?</a>
+        </div>
+
+        <button type="submit" class="btn-submit" id="loginSubmit">
+          <i class="fas fa-spinner spinner" id="loginSpinner"></i>
+          <span id="submitText">Enter the Store</span>
+        </button>
+      </form>
+
+      <div class="card-footer">
+        <i class="fas fa-shield-alt"></i>
+        <div>
+          <h4>Your session is secured</h4>
+          <p>We use advanced end-to-end security protocols to keep your account details and farming data fully private.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const roleCustomer = document.getElementById('roleCustomer');
+    const roleAdmin = document.getElementById('roleAdmin');
+    const loginCard = document.getElementById('loginCard');
+    const logoIcon = document.getElementById('logoIcon');
+    const headerTitle = document.getElementById('headerTitle');
+    const headerSub = document.getElementById('headerSub');
+    const loginType = document.getElementById('loginType');
+    const identifierLabel = document.getElementById('identifierLabel');
+    const identifierIcon = document.getElementById('identifierIcon');
+    const loginIdentifier = document.getElementById('loginIdentifier');
+    const signUpLink = document.getElementById('signUpLink');
+    const submitText = document.getElementById('submitText');
+    const loginForm = document.getElementById('loginForm');
+    const loginAlert = document.getElementById('loginAlert');
+    const alertText = document.getElementById('alertText');
+    const loginSpinner = document.getElementById('loginSpinner');
+    const loginSubmit = document.getElementById('loginSubmit');
+    const passwordToggle = document.getElementById('passwordToggle');
+    const loginPassword = document.getElementById('loginPassword');
+
+    // Password Toggle Visibility
+    passwordToggle.addEventListener('click', () => {
+      const type = loginPassword.type === 'password' ? 'text' : 'password';
+      loginPassword.type = type;
+      passwordToggle.innerHTML = type === 'password' ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
+    });
+
+    // Switch Role
+    roleCustomer.addEventListener('click', () => switchRole('customer'));
+    roleAdmin.addEventListener('click', () => switchRole('admin'));
+
+    function switchRole(role) {
+      loginAlert.style.display = 'none';
+      if (role === 'customer') {
+        roleCustomer.classList.add('active');
+        roleAdmin.classList.remove('active');
+        loginCard.className = 'card mode-customer';
+        logoIcon.innerHTML = '<i class="fas fa-seedling"></i>';
+        headerTitle.textContent = 'Welcome Back 🍃';
+        headerSub.textContent = 'Sign in to your account';
+        loginType.value = 'customer';
+        identifierLabel.textContent = 'Mobile Number';
+        identifierIcon.className = 'fas fa-phone field-icon';
+        loginIdentifier.placeholder = 'Enter your mobile number';
+        loginIdentifier.type = 'tel';
+        signUpLink.style.display = 'inline-block';
+        submitText.textContent = 'Enter the Store';
+      } else {
+        roleCustomer.classList.remove('active');
+        roleAdmin.classList.add('active');
+        loginCard.className = 'card mode-admin';
+        logoIcon.innerHTML = '<i class="fas fa-user-shield"></i>';
+        headerTitle.textContent = 'Admin Workspace ⚙️';
+        headerSub.textContent = 'Manage shop inventory & staff';
+        loginType.value = 'admin';
+        identifierLabel.textContent = 'Admin Username';
+        identifierIcon.className = 'fas fa-user field-icon';
+        loginIdentifier.placeholder = 'Enter admin username';
+        loginIdentifier.type = 'text';
+        signUpLink.style.display = 'none';
+        submitText.textContent = 'Admin Dashboard';
+      }
+      loginIdentifier.value = '';
+      loginPassword.value = '';
+    }
+
+    // Submit Form
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      loginAlert.style.display = 'none';
+      loginSpinner.style.display = 'inline-block';
+      loginSubmit.disabled = true;
+
+      const payload = {
+        type: loginType.value,
+        identifier: loginIdentifier.value.trim(),
+        password: loginPassword.value
+      };
+
+      try {
+        const response = await fetch('/api_login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error('Server responded with an error');
+        }
+
+        const data = await response.json();
+        if (data.success) {
+          window.location.href = '/' + data.redirect;
+        } else {
+          showError(data.message || 'Login failed. Please check your credentials.');
+        }
+      } catch (err) {
+        showError('Connection error. Make sure the Node.js backend server is running and database configuration is correct.');
+        console.error(err);
+      } finally {
+        loginSpinner.style.display = 'none';
+        loginSubmit.disabled = false;
+      }
+    });
+
+    function showError(msg) {
+      alertText.textContent = msg;
+      loginAlert.style.display = 'flex';
+    }
+  </script>
+</body>
 </html>
