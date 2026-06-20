@@ -2285,3 +2285,6 @@ app.get('/api_weather_advisory', (req, res) => {
     console.error("❌ Failed to start server: database migrations crashed.", err);
   }
 })();
+
+// Trigger server reload to parse new .env configurations
+
