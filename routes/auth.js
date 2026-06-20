@@ -69,7 +69,7 @@ router.post('/api_login', async (req, res) => {
     }
   } catch (err) {
     console.error("Login error:", err);
-    return res.json({ success: false, message: 'An internal server error occurred.' });
+    return res.json({ success: false, message: 'An internal server error occurred: ' + err.message });
   }
 });
 
