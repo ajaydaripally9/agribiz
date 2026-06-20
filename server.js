@@ -2039,53 +2039,54 @@ app.get('/reorder', checkCustomerSession, async (req, res) => {
 
 app.get('/manage_orders', checkAdminSession, loadSidebarStats, async (req, res) => {
   try {
-    const [rows] = await pool.query("SELECT * FROM orders ORDER BY id DESC");
+    const [rows] = await pool.query(
+      "SELECT o.*, c.mobile FROM orders o LEFT JOIN customers c ON o.customer_id = c.id ORDER BY o.id DESC"
+    );
     
     // Group by invoice_no
     const groups = {};
     for (let row of rows) {
-      if (!groups[row.invoice_no]) {
-        groups[row.invoice_no] = {
-          invoice_no: row.invoice_no,
-          customer_name: row.customer_name,
-          order_date_formatted: row.order_date ? new Date(row.order_date).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) : '',
-          pn_list: [],
-          ti: 0,
-          gt: 0,
-          status: row.status.toLowerCase(), 
+      const inv = row.invoice_no || `ORD-${row.id}`;
+      if (!groups[inv]) {
+        groups[inv] = {
+          id: inv, // Use invoice_no as the ID (shown as Order #ID in template)
+          invoice_no: inv,
+          customer_name: row.customer_name || 'Walk-in Customer',
+          mobile: row.mobile || '',
+          order_date: row.order_date,
+          status: row.status, 
+          grand_total: 0,
+          earned_coins: 0,
+          items: []
         };
       }
-      groups[row.invoice_no].pn_list.push(row.fertilizer_name);
-      groups[row.invoice_no].ti += row.quantity;
-      groups[row.invoice_no].gt += Number(row.total_price) || 0;
+      groups[inv].grand_total += Number(row.total_price) || 0;
+      groups[inv].earned_coins += Number(row.points_earned) || 0;
+      groups[inv].items.push({
+        qty: row.quantity,
+        name: row.fertilizer_name
+      });
     }
 
-    const ordersByStatus = { pending: [], accepted: [], delivery: [], delivered: [], rejected: [] };
-    let p_count = 0;
+    // Convert items to JSON string as expected by manage_orders.ejs
+    const groupedOrders = Object.values(groups).map(g => {
+      return {
+        ...g,
+        items_json: JSON.stringify(g.items)
+      };
+    });
 
-    const [adminRows] = await pool.query("SELECT points_multiplier FROM admin LIMIT 1");
-    const mult = adminRows[0]?.points_multiplier || 1;
-
-    for (let inv in groups) {
-      const g = groups[inv];
-      g.pn = g.pn_list.join(', ');
-      if (g.pn.length > 30) g.pn = g.pn.substring(0, 27) + '...';
-      g.points_earned = Math.floor(g.gt / 100) * mult;
-      
-      let s = g.status;
-      if (s === 'out for delivery') s = 'delivery';
-      
-      if (ordersByStatus[s]) {
-        ordersByStatus[s].push(g);
-      } else {
-        ordersByStatus.pending.push(g);
-      }
-      
-      if (s === 'pending') p_count++;
-    }
+    const pendingOrders = groupedOrders.filter(o => o.status.toLowerCase() === 'pending');
+    const acceptedOrders = groupedOrders.filter(o => o.status.toLowerCase() === 'accepted');
+    const shippedOrders = groupedOrders.filter(o => ['shipped', 'completed', 'delivered', 'out for delivery'].includes(o.status.toLowerCase()));
+    const rejectedOrders = groupedOrders.filter(o => o.status.toLowerCase() === 'rejected');
+    const p_count = pendingOrders.length;
 
     res.render('manage_orders', { 
-      ordersByStatus, 
+      pendingOrders,
+      acceptedOrders,
+      shippedOrders,
+      rejectedOrders,
       p_count, 
       message: req.session.msg || null, 
       wa_link: req.session.waLink || null 
@@ -2100,7 +2101,8 @@ app.get('/manage_orders', checkAdminSession, loadSidebarStats, async (req, res) 
 });
 
 app.post('/manage_orders', checkAdminSession, async (req, res) => {
-  const { invoice_no, action } = req.body;
+  const invoice_no = req.body.invoice_no || req.body.order_id;
+  const action = req.body.action;
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
@@ -2149,9 +2151,10 @@ app.post('/manage_orders', checkAdminSession, async (req, res) => {
       await conn.query("UPDATE orders SET status='Rejected' WHERE invoice_no=?", [invoice_no]);
       await logAudit(req, `Rejected customer order Invoice: ${invoice_no}`);
       req.session.msg = `Order ${invoice_no} rejected!`;
-    } else if (action === 'out_for_delivery') {
-      await conn.query("UPDATE orders SET status='Out for Delivery' WHERE invoice_no=?", [invoice_no]);
-      req.session.msg = `Order ${invoice_no} is now out for delivery!`;
+    } else if (action === 'ship' || action === 'out_for_delivery') {
+      await conn.query("UPDATE orders SET status='Shipped' WHERE invoice_no=?", [invoice_no]);
+      await logAudit(req, `Shipped customer order Invoice: ${invoice_no}`);
+      req.session.msg = `Order ${invoice_no} marked as shipped!`;
     } else if (action === 'delivered') {
       await conn.query("UPDATE orders SET status='Delivered' WHERE invoice_no=?", [invoice_no]);
       req.session.msg = `Order ${invoice_no} marked as delivered!`;
