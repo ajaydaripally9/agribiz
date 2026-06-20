@@ -66,12 +66,12 @@ INSERT INTO admin (id, username, password)
 VALUES (1, 'admin', 'admin123') 
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO fertilizers (id, fertilizer_name, company_name, quantity, price) 
+INSERT INTO fertilizers (id, barcode, fertilizer_name, company_name, quantity, price) 
 VALUES 
-(1, 'Urea', 'ABC Company', 100, 50.00),
-(2, 'DAP', 'XYZ Ltd', 50, 80.00),
-(3, 'Potash', 'Fertilizer Corp', 75, 60.00),
-(4, 'Organic Compost', 'Green Farms', 20, 30.00)
+(1, '89012345', 'Urea', 'ABC Company', 100, 50.00),
+(2, '89012346', 'DAP', 'XYZ Ltd', 50, 80.00),
+(3, '89012347', 'Potash', 'Fertilizer Corp', 75, 60.00),
+(4, '89012348', 'Organic Compost', 'Green Farms', 20, 30.00)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO customers (id, customer_name, mobile, address) 
@@ -91,3 +91,9 @@ SELECT setval(pg_get_serial_sequence('admin', 'id'), COALESCE(max(id), 1)) FROM 
 SELECT setval(pg_get_serial_sequence('fertilizers', 'id'), COALESCE(max(id), 1)) FROM fertilizers;
 SELECT setval(pg_get_serial_sequence('customers', 'id'), COALESCE(max(id), 1)) FROM customers;
 SELECT setval(pg_get_serial_sequence('suppliers', 'id'), COALESCE(max(id), 1)) FROM suppliers;
+
+-- Seed barcodes for existing products
+UPDATE fertilizers SET barcode = '89012345' WHERE id = 1 AND (barcode IS NULL OR barcode = '');
+UPDATE fertilizers SET barcode = '89012346' WHERE id = 2 AND (barcode IS NULL OR barcode = '');
+UPDATE fertilizers SET barcode = '89012347' WHERE id = 3 AND (barcode IS NULL OR barcode = '');
+UPDATE fertilizers SET barcode = '89012348' WHERE id = 4 AND (barcode IS NULL OR barcode = '');

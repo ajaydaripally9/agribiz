@@ -1402,7 +1402,7 @@ app.get('/view_invoice', checkAdminSession, loadSidebarStats, async (req, res) =
     let waUrl = '#';
     if (customer.mobile && customer.mobile !== 'N/A') {
       const itemsText = rows.map(item => `${item.quantity}x ${item.fertilizer_name}`).join(', ');
-      const msg = `Hi ${customer.customer_name}, your bill #${invoiceNo} has been generated! Items: ${itemsText}. Total Amt: Rs.${grandTotal.toFixed(2)}. Net Due: Rs.${totalDueAmt.toFixed(2)}. Thank you for shopping with TIRUMALA FERTILIZERS!`;
+      const msg = `Hi ${customer.customer_name}, your bill #${invoiceNo} has been generated! Items: ${itemsText}. Total Amt: Rs.${grandTotal.toFixed(2)}. Net Due: Rs.${totalDueAmt.toFixed(2)}. Thank you for shopping with ${shop.shop_name || 'Venkateshwara Fertilizers'}!`;
       waUrl = `https://wa.me/91${customer.mobile}?text=${encodeURIComponent(msg)}`;
     }
 

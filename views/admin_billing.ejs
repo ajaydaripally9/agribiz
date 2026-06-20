@@ -92,7 +92,7 @@ select:focus, input:focus{border-color:var(--green);}
       </div>
       <div class="product-grid" id="productGrid">
         <% products.forEach(function(p) { %>
-        <div class="p-item" onclick="addToCart(<%- JSON.stringify(p) %>)">
+        <div class="p-item" onclick="addToCartById(<%= p.id %>)">
           <span class="name"><%= p.fertilizer_name %></span>
           <span class="price">₹<%= p.price %></span>
           <span class="stock">Stock: <%= p.quantity %></span>
@@ -225,6 +225,24 @@ function filterProds(q) {
     const name = p.querySelector('.name').textContent.toLowerCase();
     p.style.display = name.includes(q.toLowerCase()) ? 'block' : 'none';
   });
+}
+
+const productsList = <%- JSON.stringify(products) %>;
+const productsById = {};
+productsList.forEach(p => {
+  productsById[p.id] = {
+    id: p.id,
+    fertilizer_name: p.fertilizer_name,
+    price: parseFloat(p.price || 0),
+    quantity: parseInt(p.quantity || 0, 10)
+  };
+});
+
+function addToCartById(id) {
+  const p = productsById[id];
+  if (p) {
+    addToCart(p);
+  }
 }
 
 const productCatalog = <%- JSON.stringify(catalogData) %>;
