@@ -5,15 +5,26 @@ const path = require('path');
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '.env') });
 
+const poolConfig = process.env.DATABASE_URL
+  ? {
+      connectionString: process.env.DATABASE_URL,
+      ssl: {
+        rejectUnauthorized: false
+      }
+    }
+  : {
+      host: process.env.DB_HOST || '127.0.0.1',
+      port: parseInt(process.env.DB_PORT || '5432', 10),
+      user: process.env.DB_USER || 'postgres',
+      password: process.env.DB_PASSWORD || '',
+      database: process.env.DB_NAME || 'fertilizer_shop'
+    };
+
 const pgPool = new Pool({
-  host: process.env.DB_HOST || '127.0.0.1',
-  port: parseInt(process.env.DB_PORT || '5432', 10),
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'fertilizer_shop',
+  ...poolConfig,
   max: 10, // maximum connection pool limit
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000
+  connectionTimeoutMillis: 10000
 });
 
 // Helper to translate MySQL queries to PostgreSQL
