@@ -1,8 +1,28 @@
 const { pool, addColumnIfNotExists } = require('./db');
+const fs = require('fs');
+const path = require('path');
 
 async function runMigrations() {
   console.log('🔄 Running database migrations for PostgreSQL...');
   const results = [];
+
+  // Run base schema from production_database.sql first
+  try {
+    const sqlPath = path.join(__dirname, 'production_database.sql');
+    if (fs.existsSync(sqlPath)) {
+      console.log('📄 Found production_database.sql. Running base schema creation...');
+      const sqlContent = fs.readFileSync(sqlPath, 'utf8');
+      await pool.query(sqlContent);
+      console.log('✅ Base schema and seed data loaded successfully.');
+      results.push({ sql: 'LOAD base schema (production_database.sql)', ok: true });
+    } else {
+      console.warn('⚠️ production_database.sql not found at:', sqlPath);
+      results.push({ sql: 'LOAD base schema (production_database.sql)', ok: false, err: 'File not found' });
+    }
+  } catch (err) {
+    console.error('❌ Failed to run base schema from production_database.sql:', err.message);
+    results.push({ sql: 'LOAD base schema (production_database.sql)', ok: false, err: err.message });
+  }
   
   // We can execute column additions safely using addColumnIfNotExists
   const columnMigrations = [
