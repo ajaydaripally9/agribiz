@@ -201,7 +201,7 @@ function renderCart() {
         <td>${item.name}</td>
         <td>₹${parseFloat(item.price).toFixed(2)}</td>
         <td>
-          <input type="number" name="items[${id}]" value="${item.qty}" class="qty-input" onchange="updateQty(${id}, this.value)">
+          <input type="number" name="items[id_${id}]" value="${item.qty}" class="qty-input" onchange="updateQty(${id}, this.value)">
         </td>
         <td>₹${total.toFixed(2)}</td>
         <td><i class="fas fa-times remove-btn" onclick="removeFromCart(${id})"></i></td>

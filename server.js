@@ -1248,8 +1248,9 @@ app.post('/admin_billing', checkAdminSession, async (req, res) => {
     let grandTotal = 0;
 
     // Loop through each product in the POS cart
-    for (const prodId of Object.keys(items)) {
-      const qty = parseInt(items[prodId] || '0', 10);
+    for (const key of Object.keys(items)) {
+      const prodId = key.replace('id_', '');
+      const qty = parseInt(items[key] || '0', 10);
       if (qty <= 0) continue;
 
       // Fetch product details
