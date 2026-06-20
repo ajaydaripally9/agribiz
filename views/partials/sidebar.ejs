@@ -1,0 +1,155 @@
+<%
+const stats = sidebarStats || { shopName: 'AgriBiz Pro', role: 'Admin', pending: 0, lowStock: 0, expiring: 0, activePage: '' };
+const role = stats.role;
+const activePage = stats.activePage;
+
+function navItem(href, icon, label, badge = 0) {
+  // Matches base file name to determine active link
+  const isActive = activePage === href || activePage.includes(href.replace('', '')) ? 'active' : '';
+  const badgeHtml = badge > 0 ? `<span style='background:var(--red);color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;margin-left:auto;'>${badge}</span>` : '';
+  return `<a href="/${href}" class="nav-item ${isActive}"><i class="fas ${icon}"></i> ${label}${badgeHtml}</a>`;
+}
+%>
+<script>
+  document.documentElement.setAttribute('data-theme', localStorage.getItem('admin-theme') || 'dark');
+</script>
+<style>
+:root{
+  --bg:#0d1117;--sidebar:#0d1117;--card:#161b22;--card2:#1c2333;
+  --green:#22c55e;--green-dark:#16a34a;--purple:#a855f7;--blue:#3b82f6;
+  --orange:#f59e0b;--red:#ef4444;--teal:#14b8a6;
+  --text:#e6edf3;--text-muted:#8b949e;--border:#30363d;
+}
+[data-theme="light"]{
+  --bg:#f8fafc;--sidebar:#ffffff;--card:#ffffff;--card2:#f1f5f9;
+  --green:#16a34a;--green-dark:#15803d;--purple:#7c3aed;--blue:#2563eb;
+  --orange:#ea580c;--red:#dc2626;--teal:#0d9488;
+  --text:#0f172a;--text-muted:#64748b;--border:#e2e8f0;
+}
+.sidebar {
+  width: 220px;
+  min-height: 100vh;
+  background: var(--sidebar);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 100;
+}
+.sidebar-logo {
+  padding: 18px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-nav {
+  flex: 1;
+  padding: 10px 0;
+  overflow-y: auto;
+}
+.nav-section-label {
+  padding: 8px 16px 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 12.5px;
+  font-weight: 500;
+  transition: all .2s;
+  border-left: 3px solid transparent;
+}
+.nav-item:hover, .nav-item.active {
+  background: rgba(34,197,94,.08);
+  color: var(--green);
+  border-left-color: var(--green);
+}
+.nav-item i {
+  width: 15px;
+  font-size: 13px;
+}
+
+@media screen {
+  .main {
+    margin-left: 220px !important;
+  }
+}
+@media print {
+  .sidebar {
+    display: none !important;
+  }
+  .main {
+    margin-left: 0 !important;
+  }
+}
+</style>
+<aside class="sidebar">
+  <audio id="notifSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+  <div class="sidebar-logo">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <i class="fas fa-seedling" style="color:var(--green);font-size:20px;"></i>
+      <div>
+        <h2 style="font-size:15px;font-weight:800;color:var(--text);"><%= stats.shopName %></h2>
+        <p style="font-size:10px;color:var(--text-muted);">ERP System</p>
+      </div>
+    </div>
+  </div>
+  <nav class="sidebar-nav" style="overflow-y:auto;flex:1;">
+    <%- navItem('dashboard', 'fa-home', 'Dashboard', stats.pending) %>
+
+    <div class="nav-section-label">Masters</div>
+    <%- navItem('view_fertilizer', 'fa-flask', 'Products', stats.lowStock) %>
+    <%- navItem('add_fertilizer', 'fa-plus-circle', 'Add Product') %>
+    <%- navItem('customers', 'fa-users', 'Customers') %>
+    <%- navItem('suppliers', 'fa-truck', 'Suppliers') %>
+
+    <div class="nav-section-label">Transactions</div>
+    <%- navItem('sales_invoices', 'fa-file-invoice', 'Sales Invoice') %>
+    <%- navItem('purchases', 'fa-shopping-cart', 'Purchase Invoice') %>
+    <%- navItem('sales_return', 'fa-rotate-left', 'Sales Return') %>
+    <%- navItem('purchase_return', 'fa-rotate-right', 'Purchase Return') %>
+    <%- navItem('inventory', 'fa-boxes-stacking', 'Stock & Inventory', stats.expiring) %>
+
+    <div class="nav-section-label">Accounts</div>
+    <%- navItem('receipts_payments', 'fa-money-bill-transfer', 'Vouchers Entry') %>
+    <%- navItem('accounting_books', 'fa-book', 'Books & Ledgers') %>
+    <%- navItem('master_ledger', 'fa-file-invoice-dollar', 'Master Ledger') %>
+    <%- navItem('gst_intel', 'fa-search-dollar', 'GST Intelligence') %>
+    <%- navItem('gst_reports', 'fa-file-excel', 'GST Reports') %>
+
+    <div class="nav-section-label">Reports</div>
+    <%- navItem('collection_dashboard', 'fa-money-bill-trend-up', 'Outstanding') %>
+    <%- navItem('reports', 'fa-chart-line', 'Reports') %>
+
+    <div class="nav-section-label">AI Analytics</div>
+    <%- navItem('ai_analytics', 'fa-robot', 'AI Forecast') %>
+
+    <% if (role === 'Admin' || role === 'Manager') { %>
+    <div class="nav-section-label">Administration</div>
+    <%- navItem('users', 'fa-user-shield', 'User Management') %>
+    <%- navItem('audit_log', 'fa-shield-halved', 'Audit Logs') %>
+    <%- navItem('backup', 'fa-database', 'Backup & Restore') %>
+    <%- navItem('erp_migrate', 'fa-screwdriver-wrench', 'Run Migrations') %>
+    <% } %>
+  </nav>
+
+  <div style="margin:10px;background:linear-gradient(135deg,#064e3b,#065f46);border-radius:12px;padding:14px;border:1px solid #059669;">
+    <h4 style="font-size:12px;font-weight:700;color:#fff;margin-bottom:2px;">AgriBiz Pro ERP</h4>
+    <p style="font-size:10px;color:#6ee7b7;">Grow More, Manage Smart</p>
+  </div>
+
+  <div style="padding:14px;border-top:1px solid var(--border);">
+    <a href="/logout" style="display:flex;align-items:center;gap:8px;color:var(--red);text-decoration:none;font-size:13px;font-weight:500;">
+      <i class="fas fa-sign-out-alt"></i> Logout
+    </a>
+  </div>
+</aside>

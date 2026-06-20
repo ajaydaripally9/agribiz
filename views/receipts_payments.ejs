@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vouchers Entry — AgriBiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
+:root{--bg:#0d1117;--card:#161b22;--card2:#1c2333;--green:#22c55e;--blue:#3b82f6;--purple:#a855f7;--orange:#f59e0b;--red:#ef4444;--text:#e6edf3;--muted:#8b949e;--border:#30363d;}
+body{background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
+
+.main{flex:1;padding:28px;max-width:1200px;}
+.topbar{margin-bottom:24px;}
+.topbar h1{font-size:22px;font-weight:700;} .topbar h1 span{color:var(--green);}
+
+.layout{display:grid;grid-template-columns:380px 1fr;gap:24px;align-items:start;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;margin-bottom:24px;}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;}
+.card-header i{color:var(--green);}
+.card-body{padding:20px;}
+
+.form-group{margin-bottom:14px;}
+.form-group label{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase;}
+select, input, textarea{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:#fff;font-size:13px;outline:none;transition:.2s;}
+select:focus, input:focus, textarea:focus{border-color:var(--green);}
+textarea{resize:vertical;min-height:60px;}
+
+.btn{width:100%;padding:12px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:none;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s;text-decoration:none;}
+.btn-green{background:var(--green);color:#fff;}
+.btn-green:hover{background:#16a34a;box-shadow:0 0 20px rgba(34,197,94,0.3);}
+
+.alert{padding:14px;border-radius:12px;margin-bottom:20px;font-size:13px;font-weight:600;}
+.alert.success{background:rgba(34,197,94,0.1);color:var(--green);border:1px solid rgba(34,197,94,.2);}
+.alert.error{background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,.2);}
+
+.table{width:100%;border-collapse:collapse;}
+.table th{padding:12px 16px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);background:rgba(255,255,255,.02);}
+.table td{padding:12px 16px;font-size:13px;border-top:1px solid var(--border);vertical-align:middle;}
+.table tr:hover td{background:rgba(255,255,255,.02);}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;}
+.badge-green{background:rgba(34,197,94,.15);color:var(--green);}
+.badge-purple{background:rgba(168,85,247,.15);color:var(--purple);}
+.badge-blue{background:rgba(59,130,246,.15);color:var(--blue);}
+.badge-orange{background:rgba(245,158,11,.15);color:var(--orange);}
+
+.empty{text-align:center;padding:40px;color:var(--muted);}
+</style>
+</head>
+<body>
+
+<%- include('partials/sidebar') %>
+
+<div class="main">
+  <div class="topbar">
+    <h1>Accounting <span>Vouchers Entry</span></h1>
+    <p style="font-size:12px;color:var(--muted);margin-top:4px;">Record customer receipts, supplier payments, and double-entry adjustments</p>
+  </div>
+
+  <% if (message) { %>
+  <div class="alert <%= msgType %>"><i class="fas fa-info-circle"></i> <%= message %></div>
+  <% } %>
+
+  <div class="layout">
+    <!-- Left: Entry Card -->
+    <div class="card">
+      <div class="card-header"><i class="fas fa-edit"></i><h3>New Voucher Entry</h3></div>
+      <div class="card-body">
+        <form method="POST" action="/receipts_payments">
+          <div class="form-group">
+            <label>Voucher Type</label>
+            <select name="voucher_type" id="vType" onchange="toggleEntities()" required>
+              <option value="Receipt">📥 Receipt (From Customer)</option>
+              <option value="Payment">📤 Payment (To Supplier)</option>
+            </select>
+          </div>
+          
+          <div class="form-group" id="custGroup">
+            <label>Customer Account</label>
+            <select name="entity_id" id="vCustomer">
+              <option value="">-- Select Customer --</option>
+              <% customers.forEach(c => { %>
+              <option value="<%= c.id %>"><%= c.customer_name %> (<%= c.mobile %>)</option>
+              <% }) %>
+            </select>
+          </div>
+
+          <div class="form-group" id="suppGroup" style="display:none;">
+            <label>Supplier Account</label>
+            <select name="entity_id" id="vSupplier" disabled>
+              <option value="">-- Select Supplier --</option>
+              <% suppliers.forEach(s => { %>
+              <option value="<%= s.id %>"><%= s.supplier_name %> (<%= s.mobile %>)</option>
+              <% }) %>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Amount (₹)</label>
+            <input type="number" step="0.01" name="amount" placeholder="0.00" required>
+          </div>
+
+          <div class="form-group">
+            <label>Payment Method</label>
+            <select name="payment_method" required>
+              <option value="Cash">💵 Cash Hand</option>
+              <option value="Bank">🏦 Bank Account / UPI</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Voucher Date</label>
+            <input type="date" name="date" value="<%= new Date().toISOString().split('T')[0] %>">
+          </div>
+
+          <div class="form-group">
+            <label>Narration / Description</label>
+            <textarea name="narration" placeholder="Enter details about this transaction..."></textarea>
+          </div>
+
+          <button type="submit" name="create_voucher" class="btn btn-green"><i class="fas fa-save"></i> Save Voucher</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Right: Vouchers Log -->
+    <div class="card">
+      <div class="card-header"><i class="fas fa-history"></i><h3>Recent Voucher Transactions</h3></div>
+      <div class="card-body" style="padding:0;">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Voucher No</th>
+              <th>Type</th>
+              <th>Account Details</th>
+              <th>Method</th>
+              <th>Amount</th>
+              <th>Date</th>
+              <th>Narration</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (vouchersLog && vouchersLog.length > 0) { %>
+              <% vouchersLog.forEach(v => { 
+                let badge = (v.voucher_type === 'Receipt') ? 'badge-green' : 'badge-purple';
+                let methodBadge = (v.payment_method === 'Cash') ? 'badge-orange' : 'badge-blue';
+              %>
+              <tr>
+                <td style="font-weight:bold; color:var(--blue); letter-spacing:0.5px;"><%= v.voucher_no %></td>
+                <td><span class="badge <%= badge %>"><%= v.voucher_type %></span></td>
+                <td><strong><%= v.entity_name %></strong> <span style="font-size:10px; color:var(--muted);">(<%= v.entity_type %>)</span></td>
+                <td><span class="badge <%= methodBadge %>"><%= v.payment_method %></span></td>
+                <td style="font-weight:700; color:<%= v.voucher_type==='Receipt'?'var(--green)':'var(--red)' %>;">
+                  ₹<%= v.amount.toFixed(2) %>
+                </td>
+                <td style="color:var(--muted); font-size:12px;"><%= new Date(v.date).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %></td>
+                <td style="color:var(--muted); font-size:12px; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="<%= v.narration %>">
+                  <%= v.narration %>
+                </td>
+              </tr>
+              <% }) %>
+            <% } else { %>
+              <tr>
+                <td colspan="7" class="empty">
+                  <i class="fas fa-inbox" style="font-size:32px; display:block; margin-bottom:8px; opacity:0.3;"></i>
+                  No vouchers entered yet.
+                </td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleEntities() {
+  const type = document.getElementById('vType').value;
+  const custGroup = document.getElementById('custGroup');
+  const suppGroup = document.getElementById('suppGroup');
+  const custSelect = document.getElementById('vCustomer');
+  const suppSelect = document.getElementById('vSupplier');
+
+  if (type === 'Receipt') {
+    custGroup.style.display = 'block';
+    suppGroup.style.display = 'none';
+    custSelect.disabled = false;
+    suppSelect.disabled = true;
+    custSelect.required = true;
+    suppSelect.required = false;
+  } else {
+    custGroup.style.display = 'none';
+    suppGroup.style.display = 'block';
+    custSelect.disabled = true;
+    suppSelect.disabled = false;
+    custSelect.required = false;
+    suppSelect.required = true;
+  }
+}
+</script>
+</body>
+</html>

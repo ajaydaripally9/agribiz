@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AgriBiz - Premium Farmer Marketplace</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#10B981">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="GreenGrow">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+/* Base Variables & Reset */
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+:root {
+  --bg: #F8FAFC; --white: #ffffff;
+  --primary: #059669; --primary-dark: #047857; --primary-light: #D1FAE5;
+  --text-dark: #0F172A; --text-gray: #475569; --text-light: #94A3B8;
+  --border: #E2E8F0;
+  --red: #ef4444; --yellow: #f59e0b;
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+  --shadow-md: 0 10px 25px rgba(0,0,0,0.05);
+  --radius: 20px;
+}
+body { background: var(--bg); color: var(--text-dark); padding-bottom: 80px; }
+.container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
+
+/* Header */
+.header { background: var(--white); position: sticky; top: 0; z-index: 1000; box-shadow: var(--shadow-sm); padding: 12px 0; }
+.header-content { display: flex; align-items: center; justify-content: space-between; max-width: 1200px; margin: 0 auto; padding: 0 16px; gap: 20px; flex-wrap: wrap; }
+.logo-container { display: flex; flex-direction: column; text-decoration: none; }
+.logo { font-size: 24px; font-weight: 900; color: var(--primary-dark); display: flex; align-items: center; gap: 8px; }
+.logo-sub { font-size: 10px; color: var(--text-gray); font-weight: 600; margin-top: 2px; }
+.search-box-desktop { flex: 1; min-width: 250px; max-width: 500px; display: flex; align-items: center; background: #F1F5F9; border-radius: 50px; padding: 6px 6px 6px 20px; border: 1px solid var(--border); transition: 0.2s; }
+.search-box-desktop:focus-within { background: var(--white); border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-light); }
+.search-box-desktop input { border: none; background: transparent; width: 100%; outline: none; font-size: 14px; padding: 0 10px; color: var(--text-dark); }
+.search-box-desktop .search-btn { background: var(--primary); color: white; border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+.header-actions { display: flex; align-items: center; gap: 15px; margin-left: auto; }
+.lang-select { background: #F1F5F9; border: none; padding: 8px 12px; border-radius: 20px; font-size: 13px; font-weight: 700; color: var(--text-dark); cursor: pointer; outline: none; }
+.icon-btn { position: relative; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--white); border: 1px solid var(--border); color: var(--text-dark); cursor: pointer; text-decoration: none; }
+.icon-btn .badge { position: absolute; top: -5px; right: -5px; background: var(--red); color: white; font-size: 10px; font-weight: 800; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.profile-btn { display: flex; align-items: center; gap: 8px; background: #F1F5F9; padding: 6px 12px 6px 6px; border-radius: 30px; text-decoration: none; color: var(--text-dark); font-weight: 700; font-size: 13px; border: 1px solid var(--border); }
+.profile-btn .avatar { width: 28px; height: 28px; background: var(--text-dark); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+
+/* Hero Section */
+.hero-wrapper { margin-top: 24px; position: relative; border-radius: 24px; overflow: hidden; display: flex; align-items: center; min-height: 400px; background: url('/assets/farmer_hero_bg.png') no-repeat center right / cover; background-color: #E2E8F0; }
+.hero-overlay { position: absolute; inset: 0; background: linear-gradient(to right, rgba(248,250,252,0.95) 0%, rgba(248,250,252,0.7) 50%, transparent 100%); z-index: 1; }
+.hero-content { position: relative; z-index: 2; padding: 40px; max-width: 600px; width: 100%; }
+.hero-title { font-size: 48px; font-weight: 900; color: var(--primary-dark); line-height: 1.1; margin-bottom: 12px; }
+.hero-subtitle { font-size: 20px; font-weight: 600; color: var(--text-dark); margin-bottom: 30px; }
+.hero-buttons { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 30px; }
+.h-btn { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-radius: 16px; cursor: pointer; border: none; font-family: inherit; transition: transform 0.2s; text-decoration: none; text-align: left; }
+.h-btn:hover { transform: translateY(-2px); }
+.h-btn-green { background: var(--primary); color: white; box-shadow: 0 8px 20px rgba(5,150,105,0.3); }
+.h-btn-light { background: #FEF3C7; color: #92400E; }
+.h-btn-white { background: var(--white); color: var(--text-dark); box-shadow: var(--shadow-md); }
+.h-btn i { font-size: 24px; }
+.h-btn div { display: flex; flex-direction: column; }
+.h-btn strong { font-size: 14px; font-weight: 800; }
+.h-btn span { font-size: 11px; opacity: 0.9; font-weight: 500; }
+.trust-badge { display: flex; align-items: center; gap: 12px; font-size: 13px; font-weight: 700; color: var(--primary-dark); background: rgba(255,255,255,0.8); padding: 8px 16px; border-radius: 20px; width: fit-content; backdrop-filter: blur(4px); }
+.trust-avatars { display: flex; }
+.trust-avatars img, .trust-avatars .avatar-circle { width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; margin-left: -8px; background: #94A3B8; }
+.trust-avatars .avatar-circle { background: var(--primary); color: white; font-size: 9px; display: flex; align-items: center; justify-content: center; }
+
+.weather-card { position: absolute; right: 40px; top: 40px; z-index: 2; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; width: 280px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+.weather-top { padding: 20px; color: white; }
+.weather-top h4 { font-size: 12px; font-weight: 600; opacity: 0.8; margin-bottom: 10px; }
+.weather-temp { display: flex; align-items: center; gap: 12px; font-size: 42px; font-weight: 800; }
+.weather-temp i { color: #FBBF24; font-size: 36px; }
+.weather-desc { font-size: 13px; font-weight: 500; opacity: 0.9; margin-top: 4px; }
+.weather-tip { padding: 20px; background: rgba(5,150,105,0.9); color: white; }
+.weather-tip h5 { font-size: 12px; font-weight: 700; opacity: 0.9; margin-bottom: 8px; }
+.weather-tip p { font-size: 14px; font-weight: 500; line-height: 1.4; margin-bottom: 15px; }
+.weather-link { font-size: 12px; font-weight: 700; color: white; text-decoration: none; display: flex; align-items: center; justify-content: space-between; }
+.expert-support-btn { margin-top: 15px; background: #064E3B; color: white; display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 16px; text-decoration: none; font-weight: 700; font-size: 14px; }
+
+/* Section Title */
+.section-header { display: flex; justify-content: space-between; align-items: center; margin: 40px 0 20px; }
+.section-title { font-size: 20px; font-weight: 800; color: var(--text-dark); }
+.view-all { color: var(--primary); font-size: 14px; font-weight: 700; text-decoration: none; }
+
+/* Categories */
+.category-row { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
+.category-row::-webkit-scrollbar { display: none; }
+.cat-card { min-width: 140px; flex: 1; background: var(--white); border-radius: 20px; padding: 20px 10px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; text-decoration: none; border: 1px solid var(--border); box-shadow: var(--shadow-sm); transition: 0.2s; }
+.cat-card:hover { border-color: var(--primary-light); box-shadow: var(--shadow-md); transform: translateY(-4px); }
+.cat-icon-wrapper { width: 64px; height: 64px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 32px; }
+.cat-card h4 { font-size: 14px; font-weight: 800; color: var(--text-dark); }
+.cat-card p { font-size: 11px; color: var(--text-gray); font-weight: 600; }
+
+/* AI Banner */
+.ai-banner { margin-top: 40px; background: linear-gradient(135deg, #ECFDF5, #F0FDF4); border: 1px solid #D1FAE5; border-radius: 24px; padding: 30px; display: flex; align-items: center; gap: 30px; position: relative; overflow: hidden; }
+.ai-banner-img { width: 180px; z-index: 2; }
+.ai-banner-content { flex: 1; z-index: 2; }
+.ai-title { font-size: 24px; font-weight: 800; color: var(--primary-dark); margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+.ai-badge { background: #A7F3D0; color: #065F46; font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 12px; }
+.ai-desc { font-size: 15px; color: var(--text-gray); font-weight: 600; margin-bottom: 20px; line-height: 1.4; }
+.ai-actions { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+.popular-searches { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.pop-label { font-size: 12px; font-weight: 800; color: var(--text-dark); }
+.pop-pill { background: white; border: 1px solid #E2E8F0; color: var(--primary-dark); font-size: 11px; font-weight: 600; padding: 6px 16px; border-radius: 20px; cursor: pointer; transition: 0.2s; box-shadow: var(--shadow-sm); }
+.pop-pill:hover { background: var(--primary-light); border-color: var(--primary-light); }
+
+/* Product Grid */
+.product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 24px; }
+.product-card { background: var(--white); border-radius: 20px; padding: 20px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; transition: 0.2s; position: relative; }
+.product-card:hover { box-shadow: var(--shadow-md); transform: translateY(-4px); border-color: var(--primary-light); }
+.product-img-container { height: 180px; background: #F8FAFC; border-radius: 16px; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+.product-img-container img { height: 140px; object-fit: contain; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1)); }
+.product-img-container .placeholder-icon { font-size: 64px; }
+.p-title { font-size: 16px; font-weight: 800; color: var(--text-dark); margin-bottom: 4px; }
+.p-sub { font-size: 12px; color: var(--text-gray); font-weight: 600; margin-bottom: 10px; }
+.p-best { font-size: 11px; font-weight: 700; color: var(--text-dark); margin-bottom: 15px; display: flex; gap: 4px; flex-wrap: wrap; }
+.p-best span { font-weight: 500; color: var(--text-gray); }
+.p-price-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; margin-top: auto; }
+.p-price { font-size: 22px; font-weight: 900; color: var(--primary-dark); }
+.p-price span { font-size: 12px; font-weight: 700; color: var(--text-gray); margin-left: 2px; }
+.p-rating { font-size: 12px; font-weight: 700; color: var(--text-gray); display: flex; align-items: center; gap: 4px; }
+.p-rating i { color: #FBBF24; }
+.buy-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 12px; font-size: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
+.buy-btn:hover { background: var(--primary-dark); }
+.buy-btn:active { transform: scale(0.98); }
+
+/* Info Cards Grid */
+.info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-top: 40px; margin-bottom: 40px; }
+.info-card { background: var(--white); border-radius: 20px; padding: 24px; border: 1px solid var(--border); display: flex; flex-direction: column; box-shadow: var(--shadow-sm); }
+.info-top { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+.info-icon { width: 50px; height: 50px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+.info-title { font-size: 13px; font-weight: 700; color: var(--text-dark); }
+.info-val { font-size: 18px; font-weight: 900; }
+.info-desc { font-size: 12px; font-weight: 600; color: var(--text-gray); margin-bottom: 15px; line-height: 1.5; }
+.info-link { font-size: 13px; font-weight: 800; color: var(--primary); text-decoration: none; display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
+.info-card.help { background: #EFF6FF; border-color: #BFDBFE; }
+.info-card.help .info-icon { background: #DBEAFE; color: #3B82F6; }
+.info-card.help .info-val { color: #1E3A8A; }
+.info-card.help .info-link { color: #3B82F6; }
+
+/* Bottom Nav */
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px 0 calc(10px + env(safe-area-inset-bottom)); box-shadow: 0 -4px 10px rgba(0,0,0,0.05); z-index: 1000; }
+.b-nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-light); text-decoration: none; width: 20%; position: relative; }
+.b-nav-item i { font-size: 22px; }
+.b-nav-item span { font-size: 10px; font-weight: 700; }
+.b-nav-item.active { color: var(--primary); }
+.fab-container { position: relative; top: -25px; width: 20%; display: flex; justify-content: center; text-decoration: none; }
+.fab { width: 64px; height: 64px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 30px; box-shadow: 0 8px 16px rgba(5,150,105,0.4); border: 4px solid var(--bg); cursor: pointer; }
+.fab-label { position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 800; color: var(--text-dark); white-space: nowrap; }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .hero-wrapper { flex-direction: column; background-position: center 20%; min-height: auto; padding-top: 40px; border-radius: 0; margin-top: 0; }
+  .hero-overlay { background: linear-gradient(to bottom, rgba(248,250,252,0.9) 0%, rgba(248,250,252,0.95) 100%); }
+  .hero-content { padding: 20px; text-align: center; }
+  .hero-title { font-size: 32px; }
+  .hero-buttons { justify-content: center; }
+  .trust-badge { margin: 0 auto; }
+  .weather-card { position: relative; right: auto; top: auto; margin: 20px auto; width: calc(100% - 40px); background: #1E293B; }
+  .ai-banner { flex-direction: column; text-align: center; padding: 20px; }
+  .ai-actions { justify-content: center; }
+  .popular-searches { justify-content: center; }
+  .header-content { padding-bottom: 10px; }
+  .search-box-desktop { order: 3; max-width: 100%; margin-top: 10px; flex-basis: 100%; }
+  body { padding-bottom: 90px; }
+}
+@media (min-width: 769px) {
+  .bottom-nav { display: none; }
+  body { padding-bottom: 0; }
+}
+
+/* Modal Shared */
+.cart-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; opacity: 0; pointer-events: none; transition: 0.3s; }
+.cart-drawer { position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); border-radius: 24px 24px 0 0; z-index: 2001; transform: translateY(100%); transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); max-height: 90vh; display: flex; flex-direction: column; max-width: 800px; margin: 0 auto; }
+.cart-overlay.active { opacity: 1; pointer-events: all; }
+.cart-drawer.active { transform: translateY(0); }
+.cart-header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.cart-items { padding: 20px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 15px; }
+.cart-item { display: flex; gap: 15px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
+.cart-item-img { width: 60px; height: 60px; background: #F8FAFC; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 30px; }
+.cart-item-info { flex: 1; }
+.cart-item-name { font-size: 14px; font-weight: 700; color: var(--text-dark); margin-bottom: 4px; }
+.cart-item-price { font-size: 14px; font-weight: 800; color: var(--primary); margin-bottom: 8px; }
+.cart-qty-ctrl { display: flex; align-items: center; gap: 10px; }
+.qty-btn { width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--border); background: var(--white); cursor: pointer; font-weight: 700; }
+.cart-footer { padding: 20px; border-top: 1px solid var(--border); background: var(--white); }
+.cart-total-row { display: flex; justify-content: space-between; font-size: 18px; font-weight: 800; color: var(--text-dark); margin-bottom: 15px; }
+.checkout-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 16px; font-size: 16px; font-weight: 800; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-content">
+    <a href="#" class="logo-container">
+      <div class="logo"><i class="fas fa-leaf"></i> AgriBiz</div>
+      <div class="logo-sub">Smart Farming, Better Tomorrow</div>
+    </a>
+    
+    <div class="desktop-nav">
+      <a href="#" class="desktop-nav-item active"><i class="fas fa-home"></i> Home</a>
+      <a href="#" class="desktop-nav-item" onclick="document.getElementById('searchInput').focus()"><i class="fas fa-search"></i> Search</a>
+      <a href="#" class="desktop-nav-item" onclick="toggleCart()"><i class="fas fa-shopping-cart"></i> Cart <div class="badge" id="cartBadgeDesktop" style="background:var(--red);color:white;border-radius:50%;padding:2px 6px;font-size:10px;margin-left:4px;">0</div></a>
+      <a href="#" class="desktop-nav-item" onclick="toggleOrders(); return false;"><i class="fas fa-box-open"></i> Orders</a>
+    </div>
+    
+    <div class="search-box-desktop">
+      <i class="fas fa-search" style="color:var(--text-light); margin-right:8px;"></i>
+      <input type="text" id="searchInput" placeholder="Search fertilizers, seeds, tools..." oninput="filterProducts()">
+      <button class="search-btn" id="voiceBtn" onclick="startVoiceSearch()" title="Voice Search"><i class="fas fa-microphone" id="voiceIcon"></i></button>
+    </div>
+
+    <div class="header-actions">
+      <select id="langToggle" class="lang-select" onchange="changeLang(this.value)">
+        <option value="en">EN 🇺🇸</option>
+        <option value="hi">HI 🇮🇳</option>
+        <option value="te">TE 🇮🇳</option>
+      </select>
+      <div style="background:var(--primary-light); color:var(--primary-dark); font-size:11px; font-weight:800; padding:6px 12px; border-radius:20px; display:flex; align-items:center; gap:6px;"><i class="fas fa-gem" style="color:#3b82f6;"></i> <%= customer.points %></div>
+      <button class="dark-toggle" id="darkToggle" onclick="toggleDark()" title="Toggle Dark Mode">🌙</button>
+      <a href="#" class="icon-btn">
+        <i class="far fa-bell"></i>
+        <div class="badge">3</div>
+      </a>
+      <a href="/customer_profile" class="profile-btn">
+        <div class="avatar"><i class="fas fa-user"></i></div>
+        Profile
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Voice Toast -->
+<div id="voiceToast"><i class="fas fa-microphone-alt"></i> <span id="voiceToastText">Listening...</span></div>
+
+<div class="container">
+  <% if (message) { %>
+    <div class="alert <%= msg_type %>" style="margin-top:20px;"><i class="fas fa-info-circle"></i> <%= message %></div>
+  <% } %>
+
+  <!-- Hero Section -->
+  <div class="hero-wrapper">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <h1 class="hero-title">Healthy Soil.<br>Better Yield.</h1>
+      <p class="hero-subtitle">AI-powered solutions for every farmer.</p>
+      
+      <div class="hero-buttons">
+        <a href="#" class="h-btn h-btn-green" onclick="openAiModal()">
+          <i class="fas fa-camera"></i>
+          <div>
+            <strong>Check My Crop</strong>
+            <span>Upload crop photo</span>
+          </div>
+        </a>
+        <a href="#" class="h-btn h-btn-light" onclick="startVoiceSearch()">
+          <i class="fas fa-microphone"></i>
+          <div>
+            <strong>Ask Agri Expert</strong>
+            <span>Voice Support</span>
+          </div>
+        </a>
+        <a href="#productsGrid" class="h-btn h-btn-white">
+          <i class="fas fa-shopping-bag"></i>
+          <div>
+            <strong>Buy Products</strong>
+            <span>Shop Now</span>
+          </div>
+        </a>
+      </div>
+
+      <div class="trust-badge">
+        <div class="trust-avatars">
+          <img src="https://i.pravatar.cc/150?img=11" alt="Farmer">
+          <img src="https://i.pravatar.cc/150?img=12" alt="Farmer">
+          <img src="https://i.pravatar.cc/150?img=13" alt="Farmer">
+          <div class="avatar-circle">+10K</div>
+        </div>
+        50,000+ Farmers trust AgriBiz
+      </div>
+    </div>
+    
+    <div class="weather-card">
+      <div class="weather-top">
+        <h4 id="weatherTitle">Agri-Weather AI</h4>
+        <div class="weather-temp">
+          <i class="fas fa-cloud-sun"></i> 28°C
+        </div>
+        <div class="weather-desc">Partly Cloudy - Siddipet</div>
+      </div>
+      <div class="weather-tip">
+        <h5 id="sprayTitle"><i class="fas fa-info-circle"></i> SPRAYING ADVISORY</h5>
+        <p id="sprayDesc">Checking weather conditions for Siddipet...</p>
+        <a href="#" class="weather-link">Full Report <i class="fas fa-arrow-right"></i></a>
+        <a href="tel:18001234567" class="expert-support-btn">
+          <i class="fas fa-headset" style="font-size:20px;"></i>
+          <div>
+             <div style="font-size:13px;">Expert Support</div>
+             <div style="font-size:10px; font-weight:500;">24/7 Helpline</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Categories -->
+  <div class="section-header">
+    <div class="section-title">What do you want to do?</div>
+    <a href="#" class="view-all">View All</a>
+  </div>
+  <div class="category-row">
+    <a href="#" class="cat-card" onclick="filterCategory('All')">
+      <div class="cat-icon-wrapper" style="background:#F0FDF4; color:#059669;"><i class="fas fa-seedling"></i></div>
+      <h4>My Crop</h4>
+      <p>Manage crops</p>
+    </a>
+    <a href="#" class="cat-card" onclick="filterCategory('Soil')">
+      <div class="cat-icon-wrapper" style="background:#FEF3C7; color:#D97706;"><i class="fas fa-flask"></i></div>
+      <h4>Test Soil</h4>
+      <p>Soil health check</p>
+    </a>
+    <a href="#productsGrid" class="cat-card" onclick="filterCategory('Fertilizers')">
+      <div class="cat-icon-wrapper" style="background:#EFF6FF; color:#3B82F6;"><i class="fas fa-box-open"></i></div>
+      <h4>Buy Fertilizer</h4>
+      <p>Best for your crop</p>
+    </a>
+    <a href="#" class="cat-card" onclick="openAiModal()">
+      <div class="cat-icon-wrapper" style="background:#FCE7F3; color:#DB2777;"><i class="fas fa-search-location"></i></div>
+      <h4>Crop Disease</h4>
+      <p>Find & cure</p>
+    </a>
+    <a href="#" class="cat-card" onclick="filterCategory('Tools')">
+      <div class="cat-icon-wrapper" style="background:#F3F4F6; color:#475569;"><i class="fas fa-tractor"></i></div>
+      <h4>Farm Services</h4>
+      <p>Tools & Services</p>
+    </a>
+    <a href="#" class="cat-card">
+      <div class="cat-icon-wrapper" style="background:#ECFCCB; color:#4D7C0F;"><i class="fas fa-book-open"></i></div>
+      <h4>Farming Tips</h4>
+      <p>Learn & Grow</p>
+    </a>
+  </div>
+
+  <!-- AI Banner -->
+  <div class="ai-banner">
+    <img src="/assets/agri_robot_3d.png" alt="AI Robot" class="ai-banner-img" onerror="this.src='https://cdn3d.iconscout.com/3d/premium/thumb/robot-4994271-4160410.png'">
+    <div class="ai-banner-content">
+      <div class="ai-title"><i class="fas fa-robot"></i> AI Agri Assistant <span class="ai-badge">BETA</span></div>
+      <div class="ai-desc">Tell me your crop problem, I will help you 24/7. Upload a photo or use voice search for an instant diagnosis!</div>
+      <div class="ai-actions">
+        <button class="h-btn h-btn-green" style="padding:10px 16px; border-radius:12px;" onclick="startVoiceSearch()">
+          <i class="fas fa-microphone" style="font-size:18px;"></i>
+          <div><strong style="font-size:13px;">Speak</strong><span style="font-size:10px;">Tell your problem</span></div>
+        </button>
+        <button class="h-btn h-btn-white" style="padding:10px 16px; border-radius:12px;" onclick="openAiModal()">
+          <i class="fas fa-camera" style="font-size:18px; color:#059669;"></i>
+          <div><strong style="font-size:13px;">Upload Photo</strong><span style="font-size:10px;">From Gallery</span></div>
+        </button>
+      </div>
+      <div class="popular-searches">
+        <span class="pop-label">Trending:</span>
+        <span class="pop-pill" onclick="document.getElementById('searchInput').value='Yellow leaves'; filterProducts();">Yellow leaves in Rice</span>
+        <span class="pop-pill" onclick="document.getElementById('searchInput').value='fertilizer'; filterProducts();">Wheat best fertilizer</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product Grid -->
+  <div class="section-header" id="productSectionTitle">
+    <div class="section-title">Recommended for Your Farm</div>
+    <a href="#" class="view-all">View All</a>
+  </div>
+  <div class="product-grid" id="productsGrid">
+    <% ferts_arr.forEach(function(f) { 
+       // Placeholder icon logic: if icon is an emoji, use generic bag image instead
+       let displayImg = f.icon;
+       if (f.icon.length <= 4) displayImg = `<img src="/assets/generic_fertilizer_bag.png" alt="Fertilizer Bag" onerror="this.outerHTML='<div class=\\'placeholder-icon\\'>'+'${f.icon}'+'</div>'">`;
+       else if (!f.icon.includes('<img')) displayImg = `<div class="placeholder-icon">${f.icon}</div>`;
+       
+       const tag = f.quantity < 10 ? 'Selling Fast' : 'Best Seller';
+       const tag_bg = f.quantity < 10 ? '#EF4444' : '#F59E0B';
+    %>
+    <div class="product-card" data-name="<%= f.fertilizer_name.toLowerCase() %>" data-cat="<%= f.category %>">
+      <div class="product-img-container">
+        <div class="p-best" style="position:absolute; top:12px; left:12px; background:<%=tag_bg%>; color:white; padding:4px 8px; border-radius:8px; margin:0; font-size:10px; z-index:2;"><%=tag%></div>
+        <%- displayImg %>
+      </div>
+      <div class="p-title"><%= f.fertilizer_name %></div>
+      <div class="p-sub"><%= f.category %></div>
+      <div class="p-rating">
+        <i class="fas fa-star"></i> <%= f.rating || '4.5' %> (<%= f.reviews || '120' %>)
+        <span style="margin-left:8px; color:<%= f.quantity < 10 ? 'var(--red)' : 'var(--primary)' %>;"><i class="fas fa-cubes"></i> <%= f.quantity %> Left</span>
+      </div>
+      <div class="p-price-row">
+        <div class="p-price">₹<%= parseFloat(f.price).toFixed(0) %> <span style="font-size:12px; font-weight:700; color:var(--text-gray); margin-left:2px; text-decoration:line-through;">₹<%= parseFloat(f.price * 1.2).toFixed(0) %></span></div>
+        <button class="add-btn buy-btn" style="width:auto; padding:8px 16px; margin:0; font-size:13px;" onclick="addToCart(<%= f.id %>, '<%= f.fertilizer_name.replace(/'/g, "\\'") %>', <%= f.price %>, '<%= f.icon.replace(/'/g, "\\'") %>', <%= f.quantity %>)">
+          <i class="fas fa-plus"></i> Add
+        </button>
+      </div>
+    </div>
+    <% }) %>
+  </div>
+
+  <!-- Info Cards Grid -->
+  <div class="info-grid">
+    <!-- Soil Health Status -->
+    <div class="info-card">
+      <div class="info-top">
+        <div class="info-icon" style="background:#FFF7ED; color:#EA580C;"><i class="fas fa-layer-group"></i></div>
+        <div>
+          <div class="info-title">Soil Health Status</div>
+          <div class="info-val" style="color:#059669;">Good</div>
+        </div>
+      </div>
+      <div class="info-desc">pH: 6.8 | N: Low | P: Medium | K: High</div>
+      <a href="#" class="info-link">View Report <i class="fas fa-chevron-right"></i></a>
+    </div>
+    
+    <!-- Crop Calendar -->
+    <div class="info-card">
+      <div class="info-top">
+        <div class="info-icon" style="background:#ECFDF5; color:#059669;"><i class="fas fa-calendar-alt"></i></div>
+        <div>
+          <div class="info-title">Crop Calendar</div>
+          <div class="info-val" style="color:#1F2937;">Paddy</div>
+        </div>
+      </div>
+      <div class="info-desc">Next: Top Dressing in 10 days</div>
+      <a href="#" class="info-link">View Calendar <i class="fas fa-chevron-right"></i></a>
+    </div>
+
+    <!-- Need Help -->
+    <div class="info-card help">
+      <div class="info-top">
+        <div class="info-icon"><i class="fas fa-headset"></i></div>
+        <div>
+          <div class="info-title">Need Help?</div>
+          <div class="info-val">Talk to Agri Expert</div>
+        </div>
+      </div>
+      <div class="info-desc">Free consultation with our top agriculture scientists.</div>
+      <a href="tel:1800123" class="info-link"><i class="fas fa-phone-alt"></i> Call Now</a>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Navigation -->
+<div class="bottom-nav">
+  <a href="#" class="b-nav-item active">
+    <i class="fas fa-home"></i>
+    <span>Home</span>
+  </a>
+  <a href="#" class="b-nav-item" onclick="toggleOrders(); return false;">
+    <i class="fas fa-box-open"></i>
+    <span>Orders</span>
+  </a>
+  <a href="#" class="fab-container" onclick="openAiModal()">
+    <div class="fab"><i class="fas fa-robot"></i></div>
+    <span class="fab-label">AI Assistant</span>
+  </a>
+  <a href="#" class="b-nav-item" onclick="toggleCart()">
+    <i class="fas fa-shopping-cart"></i>
+    <span>Cart</span>
+    <div class="cart-badge badge" id="navCartCount" style="position:absolute; top:0; right:15px; background:var(--red); color:white; border-radius:50%; width:16px; height:16px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800;">0</div>
+  </a>
+  <a href="/customer_profile" class="b-nav-item">
+    <i class="far fa-user"></i>
+    <span>Profile</span>
+  </a>
+</div>
+
+<!-- Orders Drawer -->
+<div class="cart-overlay" id="ordersOverlay" onclick="toggleOrders()"></div>
+<div class="cart-drawer" id="ordersDrawer">
+  <div class="cart-header">
+    <h3><i class="fas fa-box-open" style="color:var(--primary);margin-right:8px;"></i>My Orders</h3>
+    <button class="close-cart" onclick="toggleOrders()"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="cart-items">
+    <% if (order_history && order_history.length > 0) { %>
+    <% order_history.forEach(function(order) {
+      const status = order.status;
+      const badge_map = {'Pending':['#FEF3C7','#F59E0B'],'Accepted':['#D1FAE5','#10B981'],'Rejected':['#FEE2E2','#EF4444'],'Out for Delivery':['#DBEAFE','#3B82F6'],'Delivered':['#D1FAE5','#059669']};
+      const [badge_bg, badge_color] = badge_map[status] || ['#FEF3C7','#F59E0B'];
+      
+      const s1 = 'done';
+      const s2 = ['Accepted','Rejected','Out for Delivery','Delivered'].includes(status) ? 'done' : (status==='Pending' ? 'active' : '');
+      const s3 = ['Out for Delivery','Delivered'].includes(status) ? 'done' : (status==='Accepted' ? 'done' : (status==='Rejected' ? 'fail' : ''));
+      const s4 = status==='Delivered' ? 'done' : (status==='Out for Delivery' ? 'ship' : '');
+      const s5 = status==='Delivered' ? 'done' : '';
+    %>
+    <div style="background:#F9FAFB;border-radius:12px;padding:14px;margin-bottom:14px;border:1px solid #E5E7EB;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span style="font-size:12px;font-weight:700;color:#374151;"><%= order.invoice_no %></span>
+        <span style="background:<%= badge_bg %>;color:<%= badge_color %>;font-size:10px;font-weight:700;padding:3px 8px;border-radius:12px;"><%= status %></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:11px;color:#6B7280;"><i class="fas fa-calendar-alt"></i> <%= order.order_date_formatted %></div>
+          <div style="font-size:11px;color:#6B7280;margin-top:2px;"><i class="fas fa-box"></i> <%= order.product_names %></div>
+        </div>
+        <div style="font-size:14px;font-weight:800;color:var(--primary);">₹<%= parseFloat(order.grand_total).toLocaleString('en-IN') %></div>
+      </div>
+      <div class="order-timeline">
+        <div class="tl-step <%= s1 %>">
+          <div class="tl-dot"><i class="fas fa-shopping-basket"></i></div>
+          <div class="tl-label">Placed</div>
+        </div>
+        <div class="tl-step <%= s2 %>">
+          <div class="tl-dot"><i class="fas fa-user-md"></i></div>
+          <div class="tl-label">Reviewing</div>
+        </div>
+        <div class="tl-step <%= s3 %>">
+          <div class="tl-dot"><i class="fas fa-check"></i></div>
+          <div class="tl-label">Accepted</div>
+        </div>
+        <div class="tl-step <%= s4 %>">
+          <div class="tl-dot"><i class="fas fa-truck"></i></div>
+          <div class="tl-label">Shipped</div>
+        </div>
+        <div class="tl-step <%= s5 %>">
+          <div class="tl-dot"><i class="fas fa-leaf"></i></div>
+          <div class="tl-label">Delivered</div>
+        </div>
+      </div>
+    </div>
+    <% }) %>
+    <% } else { %>
+    <div style="text-align:center;padding:50px 20px;color:#9CA3AF;">
+      <i class="fas fa-shopping-bag" style="font-size:48px;margin-bottom:12px;opacity:0.5;display:block;"></i>
+      <p style="font-size:14px;font-weight:600;">No orders yet!</p>
+      <p style="font-size:12px;margin-top:4px;">Add products to cart and place your first order.</p>
+    </div>
+    <% } %>
+  </div>
+</div>
+
+<!-- Cart Drawer -->
+<div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+<div class="cart-drawer" id="cartDrawer">
+  <div class="cart-header">
+    <h3>Your Cart</h3>
+    <button class="close-cart" onclick="toggleCart()"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="cart-items" id="cartItems">
+    <div style="text-align:center; padding: 40px 0; color: var(--text-light);">
+      <i class="fas fa-shopping-basket" style="font-size: 48px; margin-bottom: 12px; opacity: 0.5;"></i>
+      <p>Your cart is empty.</p>
+    </div>
+  </div>
+  <div class="cart-footer" id="cartFooter" style="display:none;">
+    <div class="cart-total-row">
+      <span>Total Amount</span>
+      <span id="cartTotalVal">₹0</span>
+    </div>
+    <form method="POST" id="checkoutForm" action="/customer_shop">
+      <input type="hidden" name="buy" value="1">
+      <div id="checkoutInputs"></div>
+      <button type="button" class="checkout-btn" onclick="submitCheckout()">
+        <span>Proceed to Checkout</span>
+        <i class="fas fa-arrow-right"></i>
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- AI Modal (Crop Doctor) -->
+<div class="ai-modal" id="aiModal">
+  <div class="ai-header" style="justify-content: space-between;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <i class="fas fa-user-md" style="font-size:24px; color:var(--primary-dark);"></i>
+      <h3 style="font-size:18px; font-weight:700;">Crop Doctor AI</h3>
+    </div>
+    <button style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text-gray);" onclick="closeAiModal()">&times;</button>
+  </div>
+  <div class="ai-body" style="background:#F9FAFB;">
+    <div style="background:white; border-radius:16px; border:1px solid var(--border); padding:20px; box-shadow:var(--shadow-sm);">
+      <p style="font-size:12px; color:var(--text-gray); margin-bottom:15px; text-align:center;">Upload a photo of your crop or describe the problem for an instant diagnosis.</p>
+      
+      <div id="aiResult" style="display:none; margin-bottom:20px; padding:16px; background:#F0FDF4; border:1px dashed #34D399; border-radius:12px;">
+        <h4 style="color:#059669; font-size:14px; margin-bottom:8px;"><i class="fas fa-check-circle"></i> AI Diagnosis Complete!</h4>
+        <p style="font-size:13px; color:var(--text-dark); line-height:1.5;" id="aiText"></p>
+        <div id="aiLoader" style="display:none; text-align:center; padding:10px;">
+           <i class="fas fa-dna fa-spin" style="color:var(--primary); font-size:24px;"></i>
+           <p style="font-size:11px; margin-top:5px; font-weight:600;">Sequencing visual data...</p>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Select Crop</label>
+        <select id="aiCrop"><option>Paddy</option><option>Cotton</option><option>Vegetables</option><option>Wheat</option></select>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;">
+        <label for="aiImage" style="background:#f3f4f6; border:2px dashed #d1d5db; border-radius:12px; padding:15px; text-align:center; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px;">
+           <i class="fas fa-camera" style="font-size:20px; color:var(--text-gray);"></i>
+           <span style="font-size:11px; font-weight:600;">Upload Photo</span>
+           <input type="file" id="aiImage" style="display:none;" accept="image/*" onchange="handleAiImage(this)">
+        </label>
+        <button onclick="getAiRecommendation()" style="background:var(--primary); color:white; border:none; border-radius:12px; padding:15px; font-size:13px; font-weight:700; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px;">
+           <i class="fas fa-magic"></i>
+           <span>Analyze Now</span>
+        </button>
+      </div>
+
+      <div id="imgPreview" style="display:none; margin-bottom:20px; border-radius:12px; overflow:hidden; border:1px solid var(--border);">
+         <img src="" id="cropImg" style="width:100%; display:block;">
+      </div>
+
+      <div class="form-group">
+        <label>Describe the Symptoms</label>
+        <textarea id="aiIssue" rows="3" placeholder="e.g. Small brown spots on leaves..."></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let cart = {};
+
+function addToCart(id, name, price, icon, maxStock) {
+  if (cart[id]) {
+    if (cart[id].qty >= maxStock) { alert('Maximum stock reached!'); return; }
+    cart[id].qty++;
+  } else {
+    cart[id] = { id, name, price, icon, maxStock, qty: 1 };
+  }
+  updateCartUI();
+  
+  const btn = event.currentTarget;
+  btn.classList.add('added');
+  btn.innerHTML = '<i class="fas fa-check"></i>';
+  setTimeout(() => { btn.classList.remove('added'); btn.innerHTML = '<i class="fas fa-plus"></i>'; }, 1000);
+}
+
+function updateCartUI() {
+  const keys = Object.keys(cart);
+  let count = 0, total = 0, html = '';
+  
+  keys.forEach(k => {
+    const it = cart[k];
+    count += it.qty;
+    total += it.price * it.qty;
+    html += `
+      <div class="cart-item">
+        <div class="cart-item-img">${it.icon}</div>
+        <div class="cart-item-info">
+          <div class="cart-item-name">${it.name}</div>
+          <div class="cart-item-price">₹${it.price}</div>
+          <div class="cart-qty-ctrl">
+            <button class="qty-btn" onclick="changeQty(${it.id}, -1)">-</button>
+            <span style="font-size:14px;font-weight:600;width:20px;text-align:center;">${it.qty}</span>
+            <button class="qty-btn" onclick="changeQty(${it.id}, 1)">+</button>
+            <i class="fas fa-trash" style="color:#EF4444;margin-left:auto;cursor:pointer;" onclick="changeQty(${it.id}, -99)"></i>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+  
+  const navCartCount = document.getElementById('navCartCount');
+  const cartBadge = document.getElementById('cartBadge');
+  const cartBadgeDesktop = document.getElementById('cartBadgeDesktop');
+  
+  if (navCartCount) navCartCount.textContent = count;
+  if (cartBadge) cartBadge.textContent = count;
+  if (cartBadgeDesktop) cartBadgeDesktop.textContent = count;
+  
+  if (count > 0) {
+    document.getElementById('cartItems').innerHTML = html;
+    document.getElementById('cartTotalVal').textContent = '₹' + total.toLocaleString();
+    document.getElementById('cartFooter').style.display = 'block';
+  } else {
+    document.getElementById('cartItems').innerHTML = '<div style="text-align:center; padding: 40px 0; color: var(--text-light);"><i class="fas fa-shopping-basket" style="font-size: 48px; margin-bottom: 12px; opacity: 0.5;"></i><p>Your cart is empty.</p></div>';
+    document.getElementById('cartFooter').style.display = 'none';
+  }
+}
+
+function changeQty(id, delta) {
+  if(!cart[id]) return;
+  cart[id].qty += delta;
+  if(cart[id].qty > cart[id].maxStock) { cart[id].qty = cart[id].maxStock; alert('Max stock reached!'); }
+  if(cart[id].qty <= 0) delete cart[id];
+  updateCartUI();
+}
+
+function toggleCart() {
+  document.getElementById('cartOverlay').classList.toggle('active');
+  document.getElementById('cartDrawer').classList.toggle('active');
+}
+function toggleOrders() {
+  document.getElementById('ordersOverlay').classList.toggle('active');
+  document.getElementById('ordersDrawer').classList.toggle('active');
+}
+
+function submitCheckout() {
+  const keys = Object.keys(cart);
+  if(!keys.length) return;
+  let html = '';
+  keys.forEach(k => {
+    html += `<input type="hidden" name="fertilizer[]" value="${cart[k].id}"><input type="hidden" name="quantity[]" value="${cart[k].qty}">`;
+  });
+  document.getElementById('checkoutInputs').innerHTML = html;
+  document.getElementById('checkoutForm').submit();
+}
+
+function filterCategory(cat) {
+  document.querySelectorAll('.category-item').forEach(el => el.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  document.getElementById('productSectionTitle').innerHTML = `${cat} Products <span>See All</span>`;
+  
+  document.querySelectorAll('.product-card').forEach(card => {
+    if (cat === 'All' || card.dataset.cat === cat) card.style.display = 'flex';
+    else card.style.display = 'none';
+  });
+}
+
+function filterProducts() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('.product-card').forEach(card => {
+    if (card.dataset.name.includes(q) || card.dataset.cat.toLowerCase().includes(q)) card.style.display = 'flex';
+    else card.style.display = 'none';
+  });
+}
+
+let voiceRecognition = null;
+function showVoiceToast(msg, duration = 2500) {
+  const toast = document.getElementById('voiceToast');
+  document.getElementById('voiceToastText').textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), duration);
+}
+
+function startVoiceSearch() {
+  const btn = document.getElementById('voiceBtn');
+  const icon = document.getElementById('voiceIcon');
+  const input = document.getElementById('searchInput');
+
+  if (voiceRecognition) {
+    voiceRecognition.stop();
+    voiceRecognition = null;
+    return;
+  }
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    showVoiceToast('❌ Voice search not supported in this browser.');
+    return;
+  }
+
+  voiceRecognition = new SpeechRecognition();
+  voiceRecognition.lang = 'en-IN';
+  voiceRecognition.continuous = false;
+  voiceRecognition.interimResults = true;
+
+  voiceRecognition.onstart = function() {
+    btn.classList.add('recording');
+    icon.className = 'fas fa-stop';
+    input.placeholder = '🎤 Listening...';
+    showVoiceToast('🎤 Listening... Speak now', 5000);
+  };
+
+  voiceRecognition.onresult = function(event) {
+    let interim = '';
+    let final = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const t = event.results[i][0].transcript;
+      if (event.results[i].isFinal) final += t;
+      else interim += t;
+    }
+    input.value = final || interim;
+    if (final) {
+      filterProducts();
+      showVoiceToast('✅ Heard: "' + final + '"');
+    }
+  };
+
+  voiceRecognition.onerror = function(event) {
+    const msgs = { 'no-speech': '🔇 No speech detected. Try again.', 'not-allowed': '🚫 Microphone access denied.', 'network': '📶 Network error. Try again.' };
+    showVoiceToast(msgs[event.error] || '⚠️ Voice error: ' + event.error);
+  };
+
+  voiceRecognition.onend = function() {
+    btn.classList.remove('recording');
+    icon.className = 'fas fa-microphone';
+    input.placeholder = 'Search fertilizers, seeds...';
+    voiceRecognition = null;
+  };
+
+  voiceRecognition.start();
+}
+
+function openAiModal() { document.getElementById('aiModal').classList.add('active'); }
+function closeAiModal() { document.getElementById('aiModal').classList.remove('active'); document.getElementById('aiResult').style.display='none'; }
+function handleAiImage(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('cropImg').src = e.target.result;
+      document.getElementById('imgPreview').style.display = 'block';
+      getAiRecommendation(true);
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function getAiRecommendation(isVisual = false) {
+  const crop = document.getElementById('aiCrop').value;
+  const issue = document.getElementById('aiIssue').value;
+  const res = document.getElementById('aiResult');
+  const txt = document.getElementById('aiText');
+  const loader = document.getElementById('aiLoader');
+  
+  res.style.display = 'block';
+  loader.style.display = 'block';
+  txt.innerHTML = "";
+  
+  setTimeout(() => {
+    loader.style.display = 'none';
+    let rec = "";
+    if (isVisual) {
+      rec = "✅ **AI Diagnosis**: Based on visual analysis, your " + crop + " shows signs of **Bacterial Blight**. <br><br>**Recommendation**: Apply **'Copper Oxychloride'** or **'Streptocycline'**. Check our Pesticides section!";
+    } else {
+      if(issue.toLowerCase().includes("yield")) rec = "We recommend an NPK base fertilizer or Organic Compost to boost nutrient intake for your " + crop + ".";
+      else if(issue.toLowerCase().includes("pest")) rec = "We recommend a broad-spectrum Pesticide spray to protect your " + crop + " leaves immediately.";
+      else rec = "We recommend our premium Plant Growth Promoters to resolve your " + crop + " issues.";
+    }
+    
+    txt.innerHTML = rec;
+    if(rec.includes("Pesticide") || rec.includes("Blight")) document.getElementById('searchInput').value = "pesticide";
+    else document.getElementById('searchInput').value = "fertilizer";
+    filterProducts();
+  }, 2000);
+}
+</script>
+
+<script>
+const translations = {
+  en: { 
+    welcome: "Shop by Category", rec: "Recommended for You", search: "Search fertilizers, seeds...", 
+    home: "Home", searchBtn: "Search", cart: "Cart", orders: "Orders", profile: "Profile",
+    mandi: "Live Mandi Prices", weather: "Agri-Weather AI", spray: "SPRAYING ADVISORY", viewAll: "VIEW ALL MARKETS", marketReport: "Full Market Report", commodity: "Commodity", price: "Price"
+  },
+  hi: { 
+    welcome: "श्रेणी के अनुसार खरीदारी करें", rec: "आपके लिए अनुशंसित", search: "उर्वरक, बीज खोजें...", 
+    home: "मुख्य", searchBtn: "खोज", cart: "कार्ट", orders: "ऑर्डर", profile: "प्रोफ़ाइल",
+    mandi: "मंडी के भाव", weather: "कृषि मौसम एआई", spray: "छिड़काव सलाह", viewAll: "सभी मंडी देखें", marketReport: "पूर्ण बाजार रिपोर्ट", commodity: "वस्तु", price: "मूल्य"
+  },
+  te: { 
+    welcome: "వర్గం వారీగా షాపింగ్ చేయండి", rec: "మీ కోసం సిఫార్సు చేయబడింది", search: "ఎరువులు, విత్తనాలు వెతకండి...", 
+    home: "హోమ్", searchBtn: "శోధన", cart: "కార్ట్", orders: "ఆర్డర్లు", profile: "ప్రొఫైల్",
+    mandi: "లైవ్ మండి ధరలు", weather: "అగ్రి-వెదర్ AI", spray: "స్ప్రేయింగ్ సలహా", viewAll: "అన్ని మార్కెట్లు చూడండి", marketReport: "పూర్తి మార్కెట్ నిвеదిక", commodity: "వస్తువు", price: "ధర"
+  }
+};
+
+let currentLang = localStorage.getItem('gg-lang') || 'en';
+
+function changeLang(lang) {
+  currentLang = lang;
+  const t = translations[lang];
+  document.querySelectorAll('.section-title')[0].firstChild.textContent = t.welcome;
+  document.getElementById('productSectionTitle').firstChild.textContent = t.rec;
+  document.getElementById('searchInput').placeholder = t.search;
+  document.getElementById('weatherTitle').textContent = t.weather;
+  document.getElementById('sprayTitle').innerHTML = '<i class="fas fa-info-circle"></i> ' + t.spray;
+  
+  const navs = document.querySelectorAll('.nav-item span');
+  if(navs.length >= 5) {
+    navs[0].textContent = t.home; navs[1].textContent = t.searchBtn; navs[2].textContent = t.cart; navs[3].textContent = t.orders || 'Orders'; navs[4].textContent = t.profile || 'Profile';
+  }
+  localStorage.setItem('gg-lang', lang);
+  fetchWeatherAdvisory();
+}
+
+async function fetchWeatherAdvisory() {
+  try {
+    const res = await fetch('/api_weather_advisory');
+    const data = await res.json();
+    if(data.status === 'success') {
+      const title = document.getElementById('sprayTitle');
+      const desc = document.getElementById('sprayDesc');
+      
+      if(currentLang === 'te') {
+        title.innerHTML = '<i class="fas fa-info-circle"></i> ' + data.telugu.title;
+        desc.textContent = data.telugu.text;
+      } else {
+        title.innerHTML = '<i class="fas fa-info-circle"></i> ' + data.advisory.title;
+        desc.textContent = data.advisory.text;
+      }
+      title.style.color = data.advisory.color;
+    }
+  } catch(e) { console.error("Weather advisory error", e); }
+}
+
+
+window.addEventListener('load', () => {
+  const savedLang = localStorage.getItem('gg-lang');
+  if(savedLang) {
+    document.getElementById('langToggle').value = savedLang;
+    changeLang(savedLang);
+  } else {
+    fetchWeatherAdvisory();
+  }
+});
+
+function toggleDark() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const newTheme = isDark ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', newTheme);
+  localStorage.setItem('gg-theme', newTheme);
+  document.getElementById('darkToggle').textContent = newTheme === 'dark' ? '☀️' : '🌙';
+}
+(function() {
+  const saved = localStorage.getItem('gg-theme') || 'light';
+  document.documentElement.setAttribute('data-theme', saved);
+  const btn = document.getElementById('darkToggle');
+  if (btn) btn.textContent = saved === 'dark' ? '☀️' : '🌙';
+})();
+</script>
+
+
+</body>
+</html>

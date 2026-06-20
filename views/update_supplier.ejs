@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Update Supplier</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<h2>Update Supplier</h2>
+<form method="POST" action="/update_supplier?id=<%= supplier.id %>">
+<input type="text" name="supplier_name" value="<%= supplier.supplier_name %>" required><br><br>
+<input type="text" name="mobile" value="<%= supplier.mobile %>" required><br><br>
+<textarea name="address" required><%= supplier.address %></textarea><br><br>
+<button type="submit" name="update" value="1">Update</button>
+</form>
+<a href="/suppliers">Back</a>
+</body>
+</html>

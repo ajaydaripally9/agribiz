@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer Ledger — AgriBiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root{--bg:#0d1117;--card:#161b22;--card2:#1c2333;--green:#22c55e;--blue:#3b82f6;--orange:#f59e0b;--red:#ef4444;--text:#e6edf3;--muted:#8b949e;--border:#30363d;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
+body{background:var(--bg);color:var(--text);padding:40px;}
+.container{max-width:900px;margin:0 auto;}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:24px;}
+.table{width:100%;border-collapse:collapse;margin-top:15px;}
+.table th{text-align:left;font-size:12px;color:var(--muted);padding:12px;border-bottom:1px solid var(--border);text-transform:uppercase;}
+.table td{padding:14px 12px;border-bottom:1px solid var(--border);font-size:14px;}
+.total-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:20px;}
+.summary-box{background:var(--card2);padding:20px;border-radius:12px;border:1px solid var(--border);text-align:center;}
+.summary-box .val{font-size:24px;font-weight:700;margin-bottom:5px;}
+.summary-box .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;}
+.btn{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;text-decoration:none;display:inline-flex;align-items:center;gap:6px;}
+.btn-green{background:var(--green);color:#fff;}
+.btn-outline{border:1px solid var(--border);color:var(--text);background:none;}
+.badge{padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;}
+.badge-red{background:rgba(239,68,68,0.1);color:var(--red);}
+.badge-green{background:rgba(34,197,94,0.1);color:var(--green);}
+input{background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);width:100px;outline:none;}
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div>
+            <h1 style="font-size:24px;">Customer <span style="color:var(--green);">Ledger</span></h1>
+            <p style="color:var(--muted);font-size:13px;margin-top:4px;"><%= customer.customer_name %> — <%= customer.mobile %></p>
+        </div>
+        <a href="/customers" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Back to Customers</a>
+    </div>
+
+    <% if (message) { %>
+    <div style="background:rgba(34,197,94,0.1);color:var(--green);padding:15px;border-radius:10px;margin-bottom:20px;border:1px solid rgba(34,197,94,0.2);">
+        <i class="fas fa-check-circle"></i> <%= message %>
+    </div>
+    <% } %>
+
+    <div class="card">
+        <h3>Order History & Payments</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Invoice No</th>
+                    <th>Bill Amount</th>
+                    <th>Paid</th>
+                    <th>Due</th>
+                    <th>Quick Pay</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% 
+                let overallTotal = 0;
+                let overallPaid = 0;
+                ledgerResult.forEach(row => { 
+                    let due = row.total_bill - row.total_paid;
+                    overallTotal += row.total_bill;
+                    overallPaid += row.total_paid;
+                %>
+                <tr>
+                    <td style="color:var(--muted);"><%= new Date(row.order_date).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %></td>
+                    <td><strong><%= row.invoice_no %></strong></td>
+                    <td>₹<%= row.total_bill.toFixed(2) %></td>
+                    <td style="color:var(--green);">₹<%= row.total_paid.toFixed(2) %></td>
+                    <td>
+                        <% if (due > 0.01) { %>
+                        <span class="badge badge-red">₹<%= due.toFixed(2) %></span>
+                        <% } else { %>
+                        <span class="badge badge-green">PAID</span>
+                        <% } %>
+                    </td>
+                    <td>
+                        <% if (due > 0.01) { %>
+                        <form method="POST" action="/customer_ledger?id=<%= customer.id %>" style="display:flex;gap:5px;">
+                            <input type="hidden" name="invoice_no" value="<%= row.invoice_no %>">
+                            <input type="number" step="0.01" name="payment_amount" max="<%= due %>" placeholder="Amt" required>
+                            <button type="submit" name="record_payment" class="btn btn-green" style="padding:4px 8px;"><i class="fas fa-check"></i></button>
+                        </form>
+                        <% } else { %>
+                        <span style="color:var(--muted);font-size:12px;">Settled</span>
+                        <% } %>
+                    </td>
+                </tr>
+                <% }) %>
+            </tbody>
+        </table>
+
+        <div class="total-summary">
+            <div class="summary-box">
+                <div class="val">₹<%= overallTotal.toFixed(2) %></div>
+                <div class="lbl">Total Billing</div>
+            </div>
+            <div class="summary-box">
+                <div class="val" style="color:var(--green);">₹<%= overallPaid.toFixed(2) %></div>
+                <div class="lbl">Total Collected</div>
+            </div>
+            <div class="summary-box">
+                <div class="val" style="color:var(--red);">₹<%= (overallTotal - overallPaid).toFixed(2) %></div>
+                <div class="lbl">Outstanding Due</div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,103 +1,113 @@
 # Fertilizer Shop Management System
 
-## Project Setup
+A Node.js and Express-based ERP and Shop Management system for fertilizer sales, billing, inventory, and customer/supplier ledger management.
 
-1. Install XAMPP Server or another PHP + MySQL stack
-2. Start Apache and MySQL services
-3. Copy the `fertilizer-shop` folder to `C:\xampp\htdocs\` (or use PHP built-in server)
-4. Open phpMyAdmin (http://localhost/phpmyadmin)
-5. Create database `fertilizer_shop`
-6. Import the `database.sql` file into the database
-7. Open browser and go to `http://localhost/fertilizer-shop/`
+---
 
-Or run the project with the built-in PHP server:
+## 🚀 Quick Start (Docker Compose - Recommended)
 
-    "C:\xampp\php\php.exe" -S localhost:8000
+The easiest way to start both the Node.js backend application and the MySQL database is using Docker Compose.
 
-Then open `http://localhost:8000` in the browser.
+### Prerequisites
+* [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
 
-This repo supports a local `.env` file for the PHP backend and a frontend `.env` file for Vite.
+### Setup & Run
+1. Open your terminal in the `fertilizer-shop` directory.
+2. Run the services in the background:
+   ```bash
+   docker compose up -d
+   ```
+3. Docker will automatically pull the MySQL image, build the Node.js backend, initialize the database using `database.sql`, and start both containers.
+4. Open your browser and go to: `http://localhost:8000`
+5. To stop the containers, run:
+   ```bash
+   docker compose down
+   ```
 
-### Backend local environment
-Create a root `.env` file next to `db.php` with values like:
+---
 
-```text
-DB_HOST=127.0.0.1
-DB_PORT=3307
-DB_USER=root
-DB_PASSWORD=
-DB_NAME=fertilizer_shop
-VITE_API_BASE_URL=
-```
+## 🛠️ Manual Setup (Local Node.js & MySQL)
 
-The PHP app will automatically load `.env` values if the file exists.
+If you prefer to run the database and server locally on your machine without Docker:
 
-### Frontend local environment
-Create `greengrow-frontend/.env` with:
+### Prerequisites
+* [Node.js](https://nodejs.org/) (v18 or higher recommended)
+* A local MySQL server running (e.g., MySQL Installer, DBeaver, or another local MySQL service).
 
-```text
-VITE_API_BASE_URL=
-```
+### Setup Steps
+1. **Configure Environment Variables:**
+   * Create a file named `.env` in the root folder of the project.
+   * Copy the values from `.env.example` and customize them to fit your local MySQL configuration:
+     ```env
+     DB_HOST=127.0.0.1
+     DB_PORT=3307
+     DB_USER=root
+     DB_PASSWORD=
+     DB_NAME=fertilizer_shop
+     ```
 
-Leave it blank for local development because Vite proxies `.php` requests to `http://localhost:8000`.
+2. **Initialize MySQL Database:**
+   * Create a MySQL database named `fertilizer_shop`.
+   * Import the [database.sql](file:///c:/Users/ajayd/OneDrive/Desktop/shop%20mangement/fertilizer-shop/database.sql) file to set up the initial tables and seed data.
 
-If you are deploying the React frontend separately (for example, on Render), set the frontend environment variable `VITE_API_BASE_URL` to the URL of your PHP backend. This ensures the React app can call `api_login.php` and other PHP endpoints correctly in production.
+3. **Install Dependencies:**
+   * Run the following command in the root folder:
+     ```bash
+     npm install
+     ```
 
-### GitHub Actions / Render environment setup
-The existing CI workflow now reads these secrets if they are configured in GitHub:
-- `VITE_API_BASE_URL`
-- `RENDER_API_KEY`
-- `RENDER_SERVICE_ID`
+4. **Start the Backend Server:**
+   * For development (starts server with reload watching):
+     ```bash
+     npm run dev
+     ```
+   * The server will start and output: `🚀 AgriBiz Express Server is running on http://localhost:8000`
+   * Open your browser and go to `http://localhost:8000`.
 
-If you set `RENDER_API_KEY` and `RENDER_SERVICE_ID`, the workflow will deploy the frontend service automatically after a successful build.
+---
 
-### Render deployment checklist
+## 💻 Frontend Development (Vite + React)
 
-- Set `VITE_API_BASE_URL=https://<your-backend-service>.onrender.com` in the Render frontend service environment variables.
-- Rebuild/redeploy the frontend service after changing the variable.
-- Verify the backend service is live and reachable from the deployed frontend.
-- Do not rely on the local Vite proxy in production; it only works during local development.
+The frontend project is located in the [greengrow-frontend](file:///c:/Users/ajayd/OneDrive/Desktop/shop%20mangement/fertilizer-shop/greengrow-frontend) subdirectory.
 
-If PHP is not on your PATH, run the app with XAMPP PHP:
+1. Navigate to the frontend directory:
+   ```bash
+   cd greengrow-frontend
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the Vite development server:
+   ```bash
+   npm run dev
+   ```
+4. Access the frontend app in your browser at the address provided in your terminal (usually `http://localhost:5173`). Vite is configured to proxy API requests to the backend server running on `http://localhost:8000`.
 
-    "C:\xampp\php\php.exe" -S localhost:8000
+---
 
-## Login Credentials
+## 🔑 Login Credentials
 
-- Username: admin
-- Password: admin123
+* **Username:** `admin`
+* **Password:** `admin123`
 
-You can also create additional admin accounts by opening `register.php` in your browser after the project is running.
+You can also create customer accounts or register new administrators through the web interface.
 
-### Customer Login
-Customers can create their own accounts using `customer_register.php`, login using `customer_login.php`, and buy products through `customer_shop.php`.
+---
 
-## Features
+## 📦 Features
 
-- **Secure Login**: Session-based authentication with logout
-- **Dashboard**: Overview with total sales, stock, customers, and low stock alerts
-- **Fertilizer Management**: Add, view, search, update, delete fertilizers
-- **Stock Management**: Automatic stock updates on sales/purchases, low stock alerts
-- **Billing System**: Generate bills with customer and fertilizer dropdowns, auto-calculate totals
-- **Customer Management**: Add, view, update, delete customers
-- **Supplier Management**: Add, view, update, delete suppliers, add purchases
-- **Purchase Management**: Record purchases from suppliers, update stock
-- **History Pages**: View sales history and purchase history
-- **Reports**: Daily and monthly sales/purchase reports with totals
+* **Billing & Invoices**: Fast, print-ready checkout and receipt generation.
+* **Fertilizer Inventory**: Manage products, stock quantities, HSN codes, and low stock thresholds.
+* **Ledgers & Accounting**: Track customer and supplier credits, ledger balances, and payment records.
+* **Audit Logging**: Secure background user logging of key operations.
+* **Advisory & Dashboard**: Integration of live mandhi prices and weather alerts.
 
-## Technologies Used
+---
 
-- PHP
-- MySQL
-- HTML
-- CSS
-- Sessions for authentication
+## ⚙️ Technologies Used
 
-## Database Tables
-
-- admin: Admin login
-- fertilizers: Fertilizer inventory
-- customers: Customer details
-- suppliers: Supplier details
-- sales: Sales transactions
-- purchases: Purchase transactions
+* **Backend**: Node.js, Express, EJS Templates, `mysql2` client
+* **Frontend (optional API client)**: React, Vite, Tailwind CSS
+* **Database**: MySQL 8.0
+* **Containerization**: Docker, Docker Compose

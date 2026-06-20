@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Bill No: <%= invoiceNo %></title>
+<style>
+    @page { size: auto; margin: 5mm; }
+    body { font-family: 'Courier New', Courier, monospace; font-size: 13px; color: #000; margin: 0; padding: 20px; background: #fff; }
+    .bill-box { border: 1px solid #000; padding: 15px; position: relative; max-width: 900px; margin: 0 auto; }
+    
+    .header-info { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px; }
+    .gstin { font-size: 12px; }
+    .bill-type { border: 1px solid #000; padding: 2px 10px; text-transform: uppercase; }
+
+    .shop-name { text-align: center; margin: 10px 0; }
+    .shop-name h1 { margin: 0; font-size: 24px; font-weight: 800; text-decoration: underline; }
+    .shop-addr { font-size: 12px; font-weight: bold; }
+
+    .cust-info { display: grid; grid-template-columns: 1fr 1fr; margin-top: 15px; border-top: 1px solid #000; padding-top: 10px; }
+    .row { display: flex; margin-bottom: 5px; }
+    .label { width: 80px; font-weight: bold; }
+
+    .main-table { width: 100%; border-collapse: collapse; margin-top: 10px; border-top: 1px solid #000; border-bottom: 1px solid #000; }
+    .main-table th, .main-table td { border: 1px solid #000; padding: 5px; text-align: center; }
+    .main-table th { font-size: 11px; text-transform: uppercase; }
+
+    .footer { margin-top: 15px; display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
+    .terms { font-size: 10px; line-height: 1.4; }
+    .summary-table { width: 100%; border-collapse: collapse; }
+    .summary-table td { padding: 3px 5px; font-weight: bold; }
+    .text-right { text-align: right; }
+
+    .amt-words { border: 1px solid #000; padding: 5px; margin-top: 10px; font-weight: bold; font-size: 11px; }
+
+    .signatures { margin-top: 40px; display: flex; justify-content: space-between; }
+    .sig-box { border-top: 1px dashed #000; width: 150px; text-align: center; padding-top: 5px; font-size: 12px; font-weight: bold; }
+
+    @media print {
+        .no-print { display: none !important; }
+        body { padding: 0; }
+        .bill-box { border: none; }
+    }
+</style>
+</head>
+<body <%= printOnLoad ? 'onload=window.print()' : '' %>>
+
+<div class="bill-box">
+    <div class="header-info">
+        <div class="gstin">
+            GSTIN : 36FSBPS3478C1Z8<br>
+            Cell : 9573863949, 9492008842
+        </div>
+        <div>
+            <span class="bill-type"><%= billType %> Bill</span>
+        </div>
+    </div>
+
+    <div class="shop-name">
+        <h1>TIRUMALA FERTILIZERS, SEEDS & PESTICIDES</h1>
+        <div class="shop-addr">
+            #12-21, Near Ambedkar Circle, Chinnakodur (M), Siddipet Dist (T.S)<br>
+            Cell : 9948481889
+        </div>
+    </div>
+
+    <div class="header-info" style="margin-top:10px;">
+        <div>Bill No : <strong><%= invoiceNo %></strong></div>
+        <div>Date : <strong><%= invoiceDate %></strong></div>
+    </div>
+
+    <div class="cust-info">
+        <div>
+            <div class="row"><span class="label">Name :</span> <strong><%= customer.customer_name.toUpperCase() %></strong></div>
+            <div class="row"><span class="label">Mobile :</span> <%= customer.mobile %></div>
+        </div>
+        <div style="text-align: right;">
+            <div class="row" style="justify-content: flex-end;"><span class="label">Place :</span> <%= (customer.address || '').toUpperCase() %></div>
+        </div>
+    </div>
+
+    <table class="main-table">
+        <thead>
+            <tr>
+                <th width="40">Sl No</th>
+                <th>Particulars</th>
+                <th>Batch No</th>
+                <th>Mfg Date</th>
+                <th>Expiry Date</th>
+                <th>Qty</th>
+                <th>Rate</th>
+                <th>CGST %</th>
+                <th>SGST %</th>
+                <th width="100">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% 
+            let sl = 1;
+            items.forEach(function(item) { 
+                const item_base = item.total_price / 1.18;
+            %>
+            <tr style="height: 30px;">
+                <td><%= sl++ %></td>
+                <td style="text-align: left;"><strong><%= item.fertilizer_name.toUpperCase() %></strong></td>
+                <td><%= item.batch_no || '-' %></td>
+                <td><%= item.mfg_date_formatted || '-' %></td>
+                <td><%= item.expiry_date_formatted || '-' %></td>
+                <td><%= item.quantity %></td>
+                <td><%= (item_base / item.quantity).toFixed(2) %></td>
+                <td>9%</td>
+                <td>9%</td>
+                <td><%= parseFloat(item.total_price).toFixed(2) %></td>
+            </tr>
+            <% }); 
+            // Add empty rows to keep the bill height consistent
+            for(let k=items.length; k<5; k++) { %>
+                <tr style="height: 30px;"><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <% } %>
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <div class="terms">
+            <strong>TERMS & CONDITIONS:</strong><br>
+            1. Seal / Tackle: Batch No, Mfg Date, Expiry Date, checked & Purchased in good condition.<br>
+            2. Goods once sold will not taken back or exchanged.<br>
+            3. Above goods are purchased for Agricultural use only.<br>
+            4. All subject to SIDDIPET Jurisdiction only.<br>
+            5. Certified & Truthfully labeled seeds exempted from sales tax under APGSTG.O.M.S.NO.604.<br>
+            REVENUE (CT-II) DT 09-04-97 BY CBST G.O.M.S.NO.128 Revenue CT(II) Dt 14-02-1985.<br><br>
+            <div style="display:flex; align-items:center; gap:10px; border:1px solid #000; padding:10px; width:fit-content; border-radius:8px;">
+                <% 
+                const vpa = "9573863949@paytm"; // UPI ID
+                const pay_name = "TIRUMALA FERTILIZERS";
+                const upi_url = `upi://pay?pa=${vpa}&pn=${encodeURIComponent(pay_name)}&am=${totalDueAmt}&cu=INR`;
+                const qr_api = "https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=" + encodeURIComponent(upi_url);
+                %>
+                <img src="<%= qr_api %>" alt="UPI QR" style="width:80px; height:80px;">
+                <div style="font-size:11px;">
+                    <strong>PAY VIA UPI</strong><br>
+                    Scan to pay total due:<br>
+                    <span style="font-size:14px;">₹<%= totalDueAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></span>
+                </div>
+            </div>
+        </div>
+        <div>
+            <table class="summary-table">
+                <tr><td class="text-right">Previous Bal :</td><td class="text-right">₹<%= prevBalance.toFixed(2) %></td></tr>
+                <tr><td class="text-right">Invoice Amount :</td><td class="text-right">₹<%= grandTotal.toFixed(2) %></td></tr>
+                <tr style="border-top: 1px solid #000;"><td class="text-right">Total Due Amt :</td><td class="text-right" style="font-size:15px;">₹<%= totalDueAmt.toFixed(2) %></td></tr>
+                <tr><td colspan="2"><hr style="border:none; border-top:1px dashed #000;"></td></tr>
+                <tr><td class="text-right">Inclusive of CGST :</td><td class="text-right">₹<%= cgstTotalAmt.toFixed(2) %></td></tr>
+                <tr><td class="text-right">Inclusive of SGST :</td><td class="text-right">₹<%= sgstTotalAmt.toFixed(2) %></td></tr>
+                <tr style="border-top: 1px solid #000;"><td class="text-right">NET :</td><td class="text-right" style="font-size:16px;">₹<%= grandTotal.toFixed(2) %></td></tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="amt-words">
+        Net Amount in Words : <%= amountInWords %>
+    </div>
+
+    <div class="signatures">
+        <div class="sig-box">Farmer Signature</div>
+        <div class="sig-box">Signature</div>
+    </div>
+</div>
+
+<div class="no-print" style="text-align: center; margin-top: 20px; display:flex; justify-content:center; gap:15px; align-items:center;">
+    <a href="<%= waUrl %>" target="_blank" style="background:#25D366; color:#fff; padding: 10px 20px; border:none; border-radius:5px; cursor:pointer; text-decoration:none; font-weight:bold; font-size:13px; display:flex; align-items:center; gap:8px;">
+        <i class="fab fa-whatsapp" style="font-size:18px;"></i> SEND ON WHATSAPP
+    </a>
+    <button onclick="window.print()" style="background:#000; color:#fff; padding: 10px 20px; border:none; border-radius:5px; cursor:pointer; font-weight:bold; font-size:13px;">PRINT INVOICE</button>
+    <a href="/dashboard" style="color:#666; font-size:13px; text-decoration:none; font-weight:600;">Back to Dashboard</a>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</body>
+</html>

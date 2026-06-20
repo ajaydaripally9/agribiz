@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Suppliers — AgriBiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
+:root{--bg:#0d1117;--card:#161b22;--card2:#1c2333;--green:#22c55e;--blue:#3b82f6;--orange:#f59e0b;--red:#ef4444;--teal:#14b8a6;--text:#e6edf3;--muted:#8b949e;--border:#30363d;}
+body{background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
+
+.sidebar{width:220px;min-height:100vh;background:var(--bg);border-right:1px solid var(--border);position:fixed;left:0;top:0;bottom:0;z-index:100;display:flex;flex-direction:column;}
+.sidebar-logo{padding:20px 16px;border-bottom:1px solid var(--border);}
+.sidebar-logo h2{font-size:16px;font-weight:700;color:var(--text);}
+.sidebar-logo p{font-size:11px;color:var(--muted);}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;color:var(--muted);text-decoration:none;font-size:13px;border-left:3px solid transparent;transition:all .2s;}
+.nav-item:hover,.nav-item.active{background:rgba(34,197,94,.08);color:var(--green);border-left-color:var(--green);}
+.nav-item i{width:16px;}
+
+.main{margin-left:220px;flex:1;padding:28px;}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}
+.topbar h1{font-size:22px;font-weight:700;} .topbar h1 span{color:var(--blue);}
+
+.layout-grid { display: grid; grid-template-columns: 300px 1fr; gap: 24px; align-items: start; }
+
+.section{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:24px;}
+.section-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.section-header h3{font-size:15px;font-weight:600;}
+
+.form-body { padding: 20px; }
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .5px; }
+.form-group input, .form-group select, .form-group textarea { width: 100%; background: var(--card2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; color: var(--text); font-size: 13px; outline: none; transition: all .2s; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(59,130,246,.15); }
+.form-group textarea { resize: none; height: 60px; }
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .2s;text-decoration:none;width:100%;}
+.btn-blue{background:rgba(59,130,246,.15);color:var(--blue);border:1px solid rgba(59,130,246,.3);}
+.btn-blue:hover{background:rgba(59,130,246,.25);}
+
+.table{width:100%;border-collapse:collapse;}
+.table th{padding:11px 16px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);background:rgba(255,255,255,.02);}
+.table td{padding:13px 16px;font-size:13px;border-top:1px solid var(--border);vertical-align:middle;}
+.table tr:hover td{background:rgba(255,255,255,.02);}
+
+.action-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .2s;text-decoration:none;}
+.btn-edit{background:rgba(34,197,94,.15);color:var(--green);}
+.btn-del{background:rgba(239,68,68,.15);color:var(--red);}
+.btn-edit:hover{background:rgba(34,197,94,.25);}
+.btn-del:hover{background:rgba(239,68,68,.25);}
+
+.alert{padding:12px 18px;border-radius:10px;margin-bottom:20px;font-size:13px;font-weight:600;background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.3);}
+
+/* Animations */
+@keyframes fadeSlideUp {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.animated-card {
+  animation: fadeSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+}
+</style>
+</head>
+<body>
+
+<%- include('partials/sidebar') %>
+
+<div class="main">
+  <div class="topbar">
+    <div>
+      <h1>Supplier <span>Management</span></h1>
+      <p style="font-size:12px;color:var(--muted);margin-top:4px;">Manage wholesale suppliers and purchases</p>
+    </div>
+  </div>
+
+  <% if (typeof message !== 'undefined' && message) { %>
+  <div class="alert"><i class="fas fa-check-circle"></i> <%= message %></div>
+  <% } %>
+
+  <div class="layout-grid">
+    <div>
+      <!-- Add Supplier Form -->
+      <div class="section animated-card" style="animation-delay:0.1s;">
+        <div class="section-header">
+          <h3><i class="fas fa-truck" style="color:var(--blue);margin-right:8px;"></i>Add Supplier</h3>
+        </div>
+        <div class="form-body">
+          <form method="POST" action="/suppliers">
+            <input type="hidden" name="action_type" value="add_supplier">
+            <div class="form-group">
+                <label>Supplier Name</label>
+                <input type="text" name="supplier_name" placeholder="e.g. IPL Fertilizers" required>
+            </div>
+            <div class="form-group">
+                <label>Mobile Number</label>
+                <input type="text" name="mobile" placeholder="Contact number" required>
+            </div>
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" name="email" placeholder="Email (optional)">
+            </div>
+            <div class="form-group">
+                <label>GSTIN</label>
+                <input type="text" name="gstin" placeholder="GST Number (optional)">
+            </div>
+            <div class="form-group">
+                <label>Address</label>
+                <textarea name="address" placeholder="Full address" required></textarea>
+            </div>
+            <button type="submit" name="submit" value="1" class="btn btn-blue"><i class="fas fa-plus-circle"></i> Add Supplier</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Record Purchase Form -->
+      <div class="section animated-card" style="animation-delay:0.2s;">
+        <div class="section-header">
+          <h3><i class="fas fa-box-open" style="color:var(--green);margin-right:8px;"></i>Record Purchase</h3>
+        </div>
+        <div class="form-body">
+          <form method="POST" action="/suppliers">
+            <input type="hidden" name="action_type" value="add_purchase">
+            <div class="form-group">
+                <label>Select Supplier</label>
+                <select name="supplier" required>
+                    <option value="">Select Supplier</option>
+                    <% suppliers.forEach(function(sup) { %>
+                    <option value="<%= sup.id %>"><%= sup.supplier_name %></option>
+                    <% }) %>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Select Product</label>
+                <select name="fertilizer" required>
+                    <option value="">Select Fertilizer</option>
+                    <% fertilizers.forEach(function(fert) { %>
+                    <option value="<%= fert.id %>"><%= fert.fertilizer_name %></option>
+                    <% }) %>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Quantity</label>
+                <input type="number" name="quantity" placeholder="No. of units" required>
+            </div>
+            <div class="form-group">
+                <label>Total Cost (₹)</label>
+                <input type="number" step="0.01" name="cost" placeholder="0.00" required>
+            </div>
+            <button type="submit" name="purchase" value="1" class="btn btn-blue"><i class="fas fa-download"></i> Save Purchase</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Suppliers Table -->
+    <div class="section animated-card" style="animation-delay:0.3s;">
+      <div class="section-header">
+        <h3><i class="fas fa-list" style="color:var(--blue);margin-right:8px;"></i>Supplier Directory</h3>
+        <span style="font-size:12px;color:var(--muted);"><%= suppliers.length %> registered</span>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Supplier</th>
+            <th>Contact</th>
+            <th>Address</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (suppliers && suppliers.length > 0) { %>
+              <% suppliers.forEach(function(row) { %>
+              <tr>
+                <td>
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <div style="width:34px;height:34px;border-radius:8px;background:rgba(59,130,246,.15);display:flex;align-items:center;justify-content:center;color:var(--blue);font-weight:700;"><%= row.supplier_name.charAt(0).toUpperCase() %></div>
+                    <div>
+                      <div style="font-weight:600;"><%= row.supplier_name %></div>
+                      <div style="font-size:11px;color:var(--muted);"><%= row.gstin || 'No GSTIN' %></div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div><%= row.mobile %></div>
+                  <div style="font-size:11px;color:var(--muted);"><%= row.email || '—' %></div>
+                </td>
+                <td><%= row.address %></td>
+                <td>
+                  <div style="display:flex;gap:6px;">
+                    <a href="/update_supplier?id=<%= row.id %>" class="action-btn btn-edit"><i class="fas fa-edit"></i> Edit</a>
+                    <a href="/delete_supplier?id=<%= row.id %>" class="action-btn btn-del" onclick="return confirm('Delete <%= row.supplier_name %>?')"><i class="fas fa-trash"></i></a>
+                  </div>
+                </td>
+              </tr>
+              <% }) %>
+          <% } else { %>
+              <tr><td colspan="4" style="text-align:center;padding:30px;color:var(--muted);">No suppliers found.</td></tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

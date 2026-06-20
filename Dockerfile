@@ -1,24 +1,20 @@
-# Use the official PHP image with Apache pre-installed
-FROM php:8.2-apache
+# Use the official Node.js Alpine image for a lightweight runtime
+FROM node:20-alpine
 
-# Install the mysqli extension (required for database connectivity in your project)
-RUN docker-php-ext-install mysqli && docker-php-ext-enable mysqli
+# Set working directory inside the container
+WORKDIR /app
 
-# Enable Apache mod_rewrite (useful for .htaccess and routing)
-RUN a2enmod rewrite
+# Copy package.json and package-lock.json first to cache layers
+COPY package*.json ./
 
-# Set the working directory to the Apache document root
-WORKDIR /var/www/html
+# Install production dependencies
+RUN npm ci --only=production
 
-# Copy the entire project code into the container
-COPY . /var/www/html
+# Copy the rest of the application code
+COPY . .
 
-# Set correct permissions for the Apache web server
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html
+# Expose the application port
+EXPOSE 8000
 
-# Expose port 80 (standard Apache port)
-EXPOSE 80
-
-# Start the Apache server in the foreground
-CMD ["apache2-foreground"]
+# Start the Node.js application
+CMD ["node", "server.js"]

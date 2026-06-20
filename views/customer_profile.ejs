@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>My Profile — GreenGrow</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+/* Base Variables & Reset */
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+:root {
+  --bg: #F8FAFC; --white: #ffffff;
+  --primary: #059669; --primary-dark: #047857; --primary-light: #D1FAE5;
+  --text-dark: #0F172A; --text-gray: #475569; --text-light: #94A3B8;
+  --border: #E2E8F0;
+  --red: #ef4444; --yellow: #f59e0b;
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+  --shadow-md: 0 10px 25px rgba(0,0,0,0.05);
+  --radius: 20px;
+}
+body { background: var(--bg); color: var(--text-dark); padding-bottom: 80px; min-height:100vh; }
+
+/* Header */
+.header { background: var(--white); position: sticky; top: 0; z-index: 1000; box-shadow: var(--shadow-sm); padding: 12px 0; }
+.header-content { display: flex; align-items: center; justify-content: space-between; max-width: 1200px; margin: 0 auto; padding: 0 16px; gap: 20px; flex-wrap: wrap; }
+.logo-container { display: flex; flex-direction: column; text-decoration: none; }
+.logo { font-size: 24px; font-weight: 900; color: var(--primary-dark); display: flex; align-items: center; gap: 8px; }
+.logo-sub { font-size: 10px; color: var(--text-gray); font-weight: 600; margin-top: 2px; }
+
+.desktop-nav { display: none; align-items: center; gap: 20px; }
+.desktop-nav-item { color: var(--text-gray); text-decoration: none; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 6px; transition: 0.2s; position: relative; }
+.desktop-nav-item:hover, .desktop-nav-item.active { color: var(--primary); }
+
+.header-actions { display: flex; align-items: center; gap: 15px; margin-left: auto; }
+.profile-btn { display: flex; align-items: center; gap: 8px; background: #F1F5F9; padding: 6px 12px 6px 6px; border-radius: 30px; text-decoration: none; color: var(--text-dark); font-weight: 700; font-size: 13px; border: 1px solid var(--border); }
+.profile-btn .avatar { width: 28px; height: 28px; background: var(--text-dark); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+
+@media (min-width: 769px) {
+  .desktop-nav { display: flex; }
+  .bottom-nav { display: none !important; }
+  body { padding-bottom: 0; }
+}
+
+.profile-hero { background: linear-gradient(135deg, #059669, #10B981); padding: 40px 16px 80px; text-align: center; }
+.profile-hero h1 { font-size:24px; font-weight:800; color:#fff; }
+.profile-hero p { font-size:14px; color:rgba(255,255,255,0.9); margin-top:4px; font-weight:500; }
+
+.avatar-wrap { display:flex; justify-content:center; margin-top:-50px; margin-bottom:20px; }
+.avatar-main { width:100px; height:100px; border-radius:50%; background:linear-gradient(135deg,#059669,#34D399); border:6px solid #fff; display:flex; align-items:center; justify-content:center; font-size:40px; font-weight:800; color:#fff; box-shadow:0 10px 25px rgba(16,185,129,0.3); }
+
+.container { max-width:600px; margin:0 auto; padding:0 16px; }
+
+/* Stats */
+.stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:15px; margin-bottom:24px; }
+.stat-box { background:var(--white); border-radius:20px; padding:20px 10px; text-align:center; border:1px solid var(--border); box-shadow:var(--shadow-sm); transition:0.2s; }
+.stat-box:hover { transform: translateY(-3px); box-shadow:var(--shadow-md); border-color:var(--primary-light); }
+.stat-box .val { font-size:24px; font-weight:900; color:var(--primary); }
+.stat-box .lbl { font-size:12px; color:var(--text-gray); margin-top:4px; font-weight:600; }
+
+/* Card */
+.card { background:var(--white); border-radius:20px; padding:24px; margin-bottom:20px; border:1px solid var(--border); box-shadow:var(--shadow-sm); }
+.card-title { font-size:16px; font-weight:800; color:var(--text-dark); margin-bottom:20px; display:flex; align-items:center; gap:10px; }
+.card-title i { color:var(--primary); font-size: 18px; }
+
+/* Form */
+.form-group { margin-bottom:16px; }
+.form-group label { display:block; font-size:13px; font-weight:700; color:var(--text-gray); margin-bottom:8px; }
+.form-group input, .form-group textarea { width:100%; border:1px solid var(--border); border-radius:12px; padding:14px 16px; font-size:14px; outline:none; background:#F8FAFC; transition:0.2s; color:var(--text-dark); font-weight:500; }
+.form-group input:focus, .form-group textarea:focus { border-color:var(--primary); background:#fff; box-shadow:0 0 0 4px var(--primary-light); }
+.form-group .input-icon { position:relative; }
+.form-group .input-icon i { position:absolute; left:16px; top:50%; transform:translateY(-50%); color:var(--text-light); font-size:15px; }
+.form-group .input-icon input { padding-left:44px; }
+textarea { resize:vertical; min-height:100px; }
+
+.info-row { display:flex; align-items:center; gap:15px; padding:15px 0; border-bottom:1px solid var(--border); }
+.info-row:last-child { border-bottom:none; padding-bottom:0; }
+.info-row i { color:var(--primary); width:24px; font-size:18px; text-align:center; }
+.info-row .val { font-size:14px; font-weight:700; color:var(--text-dark); }
+.info-row .lbl { font-size:11px; color:var(--text-gray); font-weight:600; }
+
+.btn-primary { width:100%; background:var(--primary); color:#fff; border:none; padding:16px; border-radius:16px; font-size:15px; font-weight:800; cursor:pointer; transition:0.2s; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 4px 10px rgba(5,150,105,0.2); }
+.btn-primary:hover { background:var(--primary-dark); transform:translateY(-2px); box-shadow: 0 6px 15px rgba(5,150,105,0.3); }
+.btn-primary:active { transform: scale(0.98); }
+
+.btn-danger { width:100%; background:#FEF2F2; color:#DC2626; border:1px solid #FECACA; padding:16px; border-radius:16px; font-size:15px; font-weight:700; cursor:pointer; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px; transition:0.2s; }
+.btn-danger:hover { background:#FEE2E2; }
+
+.alert { padding:14px 20px; border-radius:16px; font-size:14px; font-weight:700; margin-bottom:20px; display:flex; align-items:center; gap:10px; }
+.alert.success { background:#ECFDF5; color:#059669; border:1px solid #A7F3D0; }
+.alert.error { background:#FEF2F2; color:#DC2626; border:1px solid #FECACA; }
+
+/* Bottom Nav */
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px 0 calc(10px + env(safe-area-inset-bottom)); box-shadow: 0 -4px 10px rgba(0,0,0,0.05); z-index: 1000; }
+.b-nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-light); text-decoration: none; width: 20%; position: relative; }
+.b-nav-item i { font-size: 22px; }
+.b-nav-item span { font-size: 10px; font-weight: 700; }
+.b-nav-item.active { color: var(--primary); }
+.fab-container { position: relative; top: -25px; width: 20%; display: flex; justify-content: center; text-decoration: none; }
+.fab { width: 64px; height: 64px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 30px; box-shadow: 0 8px 16px rgba(5,150,105,0.4); border: 4px solid var(--bg); cursor: pointer; }
+.fab-label { position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 800; color: var(--text-dark); white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-content">
+    <a href="/customer_shop" class="logo-container">
+      <div class="logo"><i class="fas fa-leaf"></i> AgriBiz</div>
+      <div class="logo-sub">Smart Farming, Better Tomorrow</div>
+    </a>
+    
+    <div class="desktop-nav">
+      <a href="/customer_shop" class="desktop-nav-item"><i class="fas fa-home"></i> Home</a>
+      <a href="/customer_profile" class="desktop-nav-item active"><i class="fas fa-user"></i> Profile</a>
+    </div>
+
+    <div class="header-actions">
+      <a href="/customer_profile" class="profile-btn">
+        <div class="avatar"><i class="fas fa-user"></i></div>
+        Profile
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="profile-hero">
+  <h1>My Profile</h1>
+  <p>Manage your account settings and orders</p>
+</div>
+
+<div class="container">
+  <div class="avatar-wrap">
+    <div class="avatar-main"><%= customer.customer_name.substring(0, 1).toUpperCase() %></div>
+  </div>
+
+  <% if (message) { %>
+  <div class="alert <%= msg_type %>"><i class="fas fa-<%= msg_type === 'success' ? 'check-circle' : 'exclamation-circle' %>"></i> <%= message %></div>
+  <% } %>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-box">
+      <div class="val"><%= orderCount %></div>
+      <div class="lbl">Orders</div>
+    </div>
+    <div class="stat-box">
+      <div class="val">₹<%= totalSpent.toLocaleString('en-IN', {maximumFractionDigits: 0}) %></div>
+      <div class="lbl">Total Spent</div>
+    </div>
+    <div class="stat-box">
+      <div class="val"><%= pendingCount %></div>
+      <div class="lbl">Pending</div>
+    </div>
+  </div>
+
+  <!-- Account Info -->
+  <div class="card">
+    <div class="card-title"><i class="fas fa-id-card"></i> Account Info</div>
+    <div class="info-row">
+      <i class="fas fa-phone"></i>
+      <div><div class="lbl">Mobile Number</div><div class="val"><%= customer.mobile %></div></div>
+    </div>
+    <div class="info-row">
+      <i class="fas fa-map-marker-alt"></i>
+      <div><div class="lbl">Address</div><div class="val"><%= customer.address || 'Not set' %></div></div>
+    </div>
+    <% if (customer.gstin) { %>
+    <div class="info-row">
+      <i class="fas fa-percent"></i>
+      <div><div class="lbl">GSTIN</div><div class="val"><%= customer.gstin %></div></div>
+    </div>
+    <% } %>
+  </div>
+
+  <!-- Edit Profile -->
+  <div class="card">
+    <div class="card-title"><i class="fas fa-edit"></i> Edit Profile</div>
+    <form method="POST" action="/customer_profile">
+      <div class="form-group">
+        <label>Full Name</label>
+        <div class="input-icon"><i class="fas fa-user"></i><input type="text" name="customer_name" value="<%= customer.customer_name %>" required></div>
+      </div>
+      <div class="form-group">
+        <label>Address</label>
+        <textarea name="address"><%= customer.address || '' %></textarea>
+      </div>
+      <div class="form-group">
+        <label>New Password <span style="color:var(--gray);font-weight:400;">(leave blank to keep current)</span></label>
+        <div class="input-icon"><i class="fas fa-lock"></i><input type="password" name="new_password" placeholder="Enter new password"></div>
+      </div>
+      <div class="form-group">
+        <label>Confirm New Password</label>
+        <div class="input-icon"><i class="fas fa-lock"></i><input type="password" name="confirm_password" placeholder="Confirm new password"></div>
+      </div>
+      <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Save Changes</button>
+    </form>
+  </div>
+
+  <!-- Logout -->
+  <a href="/customer_logout" class="btn-danger"><i class="fas fa-sign-out-alt"></i> Logout</a>
+</div>
+
+<div class="bottom-nav">
+  <a href="/customer_shop" class="b-nav-item">
+    <i class="fas fa-home"></i>
+    <span>Home</span>
+  </a>
+  <a href="/customer_shop" class="b-nav-item">
+    <i class="fas fa-box-open"></i>
+    <span>Orders</span>
+  </a>
+  <a href="/customer_shop" class="fab-container">
+    <div class="fab"><i class="fas fa-robot"></i></div>
+    <span class="fab-label">AI Assistant</span>
+  </a>
+  <a href="/customer_shop" class="b-nav-item">
+    <i class="fas fa-shopping-cart"></i>
+    <span>Cart</span>
+  </a>
+  <a href="/customer_profile" class="b-nav-item active">
+    <i class="far fa-user"></i>
+    <span>Profile</span>
+  </a>
+</div>
+
+</body>
+</html>

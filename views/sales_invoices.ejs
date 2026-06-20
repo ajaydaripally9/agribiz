@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Invoices — AgriBiz ERP</title>
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('admin-theme') || 'dark');</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
+:root{--bg:#0d1117;--sidebar:#0d1117;--card:#161b22;--card2:#1c2333;--green:#22c55e;--green-dark:#16a34a;--purple:#a855f7;--blue:#3b82f6;--orange:#f59e0b;--red:#ef4444;--teal:#14b8a6;--text:#e6edf3;--text-muted:#8b949e;--border:#30363d;}
+[data-theme="light"]{--bg:#f8fafc;--sidebar:#fff;--card:#fff;--card2:#f1f5f9;--green:#16a34a;--green-dark:#15803d;--purple:#7c3aed;--blue:#2563eb;--orange:#ea580c;--red:#dc2626;--teal:#0d9488;--text:#0f172a;--text-muted:#64748b;--border:#e2e8f0;}
+body{background:var(--bg);color:var(--text);display:flex;min-height:100vh;}
+
+.main{flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{background:var(--sidebar);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50;}
+.content{padding:24px 28px;}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.stat-card .lbl{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.stat-card .val{font-size:22px;font-weight:800;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px;}
+.card-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.card-header h3{font-size:14px;font-weight:700;}
+.table{width:100%;border-collapse:collapse;}
+.table th{padding:10px 14px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);background:rgba(255,255,255,.02);}
+.table td{padding:11px 14px;font-size:13px;border-top:1px solid var(--border);}
+.table tr:hover td{background:rgba(255,255,255,.02);}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-green{background:rgba(34,197,94,.15);color:var(--green);}
+.badge-red{background:rgba(239,68,68,.15);color:var(--red);}
+.badge-orange{background:rgba(245,158,11,.15);color:var(--orange);}
+.badge-blue{background:rgba(59,130,246,.15);color:var(--blue);}
+.badge-gray{background:rgba(139,148,158,.15);color:var(--text-muted);}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;text-decoration:none;transition:.2s;}
+.btn-green{background:var(--green);color:#fff;} .btn-green:hover{background:var(--green-dark);}
+.btn-blue{background:var(--blue);color:#fff;} .btn-blue:hover{background:#2563eb;}
+.btn-red{background:var(--red);color:#fff;} .btn-red:hover{background:#dc2626;}
+.btn-ghost{background:var(--card2);color:var(--text);border:1px solid var(--border);}
+.btn-ghost:hover{border-color:var(--green);color:var(--green);}
+.filter-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px;}
+.filter-bar input,.filter-bar select{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:7px 12px;color:var(--text);font-size:12px;outline:none;}
+.filter-bar input:focus,.filter-bar select:focus{border-color:var(--green);}
+.msg{padding:11px 16px;border-radius:10px;font-size:13px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.msg-success{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:var(--green);}
+.msg-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:var(--red);}
+/* Print styles */
+@media print {
+  .sidebar,.topbar,.filter-bar,.no-print{display:none!important;}
+  .main{margin:0!important;} .content{padding:0!important;}
+  .card{border:none!important;box-shadow:none!important;}
+  body{background:#fff!important;color:#000!important;}
+}
+/* Modal */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:400;backdrop-filter:blur(4px);align-items:center;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:18px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;animation:mi .2s ease;}
+@keyframes mi{from{opacity:0;transform:scale(.95);}to{opacity:1;transform:scale(1);}}
+.modal-head{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.modal-body{padding:22px 24px;}
+.modal-foot{padding:14px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;}
+.invoice-print-area{font-family:'Inter',sans-serif;}
+.inv-header{text-align:center;margin-bottom:16px;}
+.inv-header h2{font-size:20px;font-weight:800;}
+.inv-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;font-size:12px;}
+.inv-table{width:100%;border-collapse:collapse;font-size:12px;}
+.inv-table th,.inv-table td{padding:8px 10px;border:1px solid #ddd;text-align:left;}
+.inv-table th{background:#f5f5f5;font-weight:700;}
+</style>
+</head>
+<body>
+
+<%- include('partials/sidebar') %>
+
+<div class="main">
+  <div class="topbar">
+    <div>
+      <p style="font-size:11px;color:var(--text-muted);">Transactions</p>
+      <h1 style="font-size:18px;font-weight:800;"><i class="fas fa-file-invoice" style="color:var(--green);margin-right:6px;"></i>Sales Invoices</h1>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <button class="btn btn-ghost" onclick="toggleTheme()"><i class="fas fa-sun" id="themeIcon"></i></button>
+      <a href="/admin_billing" class="btn btn-green"><i class="fas fa-plus"></i> New Invoice</a>
+    </div>
+  </div>
+
+  <div class="content">
+    <% if (msg) { %>
+      <div class="msg msg-<%= msgType %>">
+        <i class="fas fa-<%= msgType === 'success' ? 'check-circle' : 'exclamation-circle' %>"></i>
+        <%= msg %>
+      </div>
+    <% } %>
+
+    <% if (viewInv && invoiceDetail) { %>
+    <!-- ─── INVOICE DETAIL VIEW ─── -->
+    <div class="no-print" style="margin-bottom:14px;">
+      <a href="/sales_invoices" class="btn btn-ghost"><i class="fas fa-arrow-left"></i> Back to List</a>
+      <button class="btn btn-blue" onclick="window.print()" style="margin-left:8px;"><i class="fas fa-print"></i> Print / PDF</button>
+      <a href="/sales_return?inv=<%= encodeURIComponent(viewInv) %>" class="btn" style="background:var(--orange);color:#fff;margin-left:8px;"><i class="fas fa-rotate-left"></i> Sales Return</a>
+      <% if (invoiceDetail.status !== 'Voided') { %>
+      <button class="btn btn-red" onclick="document.getElementById('voidModal').classList.add('open')" style="margin-left:8px;"><i class="fas fa-ban"></i> Void Invoice</button>
+      <% } %>
+    </div>
+    <div class="invoice-print-area" style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:32px;">
+      <div class="inv-header">
+        <h2 style="color:var(--green);">TAX INVOICE</h2>
+        <p style="font-size:13px;color:var(--text-muted);">Invoice No: <strong style="color:var(--text);"><%= invoiceDetail.invoice_no %></strong></p>
+        <p style="font-size:12px;color:var(--text-muted);">Date: <%= new Date(invoiceDetail.order_date).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %></p>
+      </div>
+      <div class="inv-grid">
+        <div>
+          <strong>Bill To:</strong><br>
+          <b><%= invoiceDetail.customer_name %></b><br>
+          <%= invoiceDetail.mobile || '' %><br>
+          <%= invoiceDetail.address || '' %>
+          <% if (invoiceDetail.gstin) { %><br>GSTIN: <%= invoiceDetail.gstin %><% } %>
+        </div>
+        <div style="text-align:right;">
+          <strong>Payment:</strong> <%= invoiceDetail.bill_type %><br>
+          <strong>Status:</strong> <%= invoiceDetail.status %>
+        </div>
+      </div>
+      <table class="inv-table">
+        <thead><tr><th>#</th><th>Product</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead>
+        <tbody>
+        <% let subtotal = 0; invoiceItems.forEach((it, i) => { subtotal += it.total_price; %>
+          <tr>
+            <td><%= i+1 %></td>
+            <td><%= it.fertilizer_name %></td>
+            <td><%= it.quantity %></td>
+            <td>₹<%= (it.unit_price).toFixed(2) %></td>
+            <td>₹<%= (it.total_price).toFixed(2) %></td>
+          </tr>
+        <% }) %>
+        </tbody>
+        <tfoot>
+          <%
+          let disc = parseFloat(invoiceDetail.discount || 0);
+          let afterDisc = subtotal - disc;
+          let gstBase = afterDisc / 1.18;
+          let gstAmt = afterDisc - gstBase;
+          let due = afterDisc - parseFloat(invoiceDetail.paid_amount || 0);
+          %>
+          <% if (disc > 0) { %><tr><td colspan="4" style="text-align:right;">Discount:</td><td>- ₹<%= disc.toFixed(2) %></td></tr><% } %>
+          <tr style="background:#f9f9f9;"><td colspan="4" style="text-align:right;">Taxable Amount:</td><td><b>₹<%= gstBase.toFixed(2) %></b></td></tr>
+          <tr><td colspan="4" style="text-align:right;">CGST (9%):</td><td>₹<%= (gstAmt/2).toFixed(2) %></td></tr>
+          <tr><td colspan="4" style="text-align:right;">SGST (9%):</td><td>₹<%= (gstAmt/2).toFixed(2) %></td></tr>
+          <tr style="font-weight:800;background:#f0f0f0;"><td colspan="4" style="text-align:right;">Grand Total:</td><td>₹<%= afterDisc.toFixed(2) %></td></tr>
+          <tr style="color:green;"><td colspan="4" style="text-align:right;">Amount Paid:</td><td>₹<%= parseFloat(invoiceDetail.paid_amount || 0).toFixed(2) %></td></tr>
+          <% if (due > 0.01) { %><tr style="color:red;font-weight:700;"><td colspan="4" style="text-align:right;">Balance Due:</td><td>₹<%= due.toFixed(2) %></td></tr><% } %>
+        </tfoot>
+      </table>
+      <p style="font-size:11px;color:var(--text-muted);margin-top:16px;text-align:center;">Thank you for your business! — Generated by AgriBiz ERP</p>
+
+      <% if (due > 0.01 && invoiceDetail.status !== 'Voided') { %>
+      <div class="no-print" style="margin-top:20px;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px;">
+        <h4 style="font-size:13px;font-weight:700;margin-bottom:12px;"><i class="fas fa-money-bill" style="color:var(--green);"></i> Record Payment</h4>
+        <form method="POST" action="/sales_invoices" style="display:flex;gap:10px;align-items:center;">
+          <input type="hidden" name="invoice_no" value="<%= viewInv %>">
+          <input type="number" name="pay_amount" placeholder="Amount ₹" max="<%= due %>" step="0.01" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;outline:none;width:160px;">
+          <button type="submit" name="mark_paid" class="btn btn-green"><i class="fas fa-check"></i> Mark Paid</button>
+        </form>
+      </div>
+      <% } %>
+    </div>
+
+    <!-- Void Modal -->
+    <div class="overlay" id="voidModal">
+      <div class="modal" style="max-width:420px;">
+        <div class="modal-head"><h3 style="font-size:15px;font-weight:700;"><i class="fas fa-ban" style="color:var(--red);"></i> Void Invoice</h3><button onclick="document.getElementById('voidModal').classList.remove('open')" style="background:none;border:none;color:var(--text-muted);font-size:18px;cursor:pointer;">✕</button></div>
+        <div class="modal-body">
+          <p style="font-size:13px;color:var(--text-muted);">This will void invoice <strong><%= viewInv %></strong> and restore all stock. This action cannot be undone.</p>
+        </div>
+        <div class="modal-foot">
+          <button onclick="document.getElementById('voidModal').classList.remove('open')" class="btn btn-ghost">Cancel</button>
+          <form method="POST" action="/sales_invoices">
+            <input type="hidden" name="invoice_no" value="<%= viewInv %>">
+            <button type="submit" name="void_invoice" class="btn btn-red"><i class="fas fa-ban"></i> Confirm Void</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <% } else { %>
+    <!-- ─── INVOICE LIST ─── -->
+    <div class="stats-grid">
+      <div class="stat-card" style="border-left:4px solid var(--green);">
+        <div class="lbl">Total Invoices</div>
+        <div class="val" style="color:var(--green);"><%= stats.total_inv %></div>
+      </div>
+      <div class="stat-card" style="border-left:4px solid var(--blue);">
+        <div class="lbl">Total Billed</div>
+        <div class="val" style="color:var(--blue);">₹<%= stats.total_amount.toLocaleString('en-IN', {maximumFractionDigits: 0}) %></div>
+      </div>
+      <div class="stat-card" style="border-left:4px solid var(--green);">
+        <div class="lbl">Amount Collected</div>
+        <div class="val" style="color:var(--green);"><%= stats.total_paid.toLocaleString('en-IN', {maximumFractionDigits: 0}) %></div>
+      </div>
+      <div class="stat-card" style="border-left:4px solid var(--red);">
+        <div class="lbl">Outstanding Due</div>
+        <div class="val" style="color:var(--red);">₹<%= (stats.total_amount - stats.total_paid).toLocaleString('en-IN', {maximumFractionDigits: 0}) %></div>
+      </div>
+    </div>
+
+    <form method="GET" action="/sales_invoices" class="filter-bar no-print">
+      <input type="date" name="from" value="<%= filterFrom %>">
+      <input type="date" name="to" value="<%= filterTo %>">
+      <select name="status">
+        <option value="">All Status</option>
+        <option value="Delivered" <%= filterStatus==='Delivered' ? 'selected' : '' %>>Delivered</option>
+        <option value="Pending" <%= filterStatus==='Pending' ? 'selected' : '' %>>Pending</option>
+        <option value="Voided" <%= filterStatus==='Voided' ? 'selected' : '' %>>Voided</option>
+      </select>
+      <input type="text" name="q" value="<%= filterSearch %>" placeholder="Search invoice / customer...">
+      <button type="submit" class="btn btn-green"><i class="fas fa-filter"></i> Filter</button>
+      <a href="/sales_invoices" class="btn btn-ghost"><i class="fas fa-times"></i> Clear</a>
+    </form>
+
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="fas fa-list" style="color:var(--green);"></i> Invoice List</h3>
+        <span style="font-size:12px;color:var(--text-muted);"><%= new Date(filterFrom).toLocaleDateString('en-IN', {day:'2-digit', month:'short'}) %> — <%= new Date(filterTo).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %></span>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Invoice No</th>
+            <th>Customer</th>
+            <th>Date</th>
+            <th>Items</th>
+            <th>Grand Total</th>
+            <th>Paid</th>
+            <th>Due</th>
+            <th>Method</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+        <% if (invoices.length > 0) { %>
+          <% invoices.forEach(inv => {
+              let grand_total = parseFloat(inv.grand_total || 0);
+              let paid_amount = parseFloat(inv.paid_amount || 0);
+              let due = grand_total - paid_amount;
+              let statusClass = 'badge-blue';
+              if (inv.status === 'Delivered' || inv.status === 'Accepted') statusClass = 'badge-green';
+              else if (inv.status === 'Pending') statusClass = 'badge-orange';
+              else if (inv.status === 'Voided') statusClass = 'badge-gray';
+          %>
+          <tr>
+            <td><strong style="color:var(--blue);"><%= inv.invoice_no %></strong></td>
+            <td><%= inv.customer_name %></td>
+            <td style="color:var(--text-muted);font-size:12px;"><%= new Date(inv.order_date).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %></td>
+            <td><span class="badge badge-blue"><%= inv.item_count %> items</span></td>
+            <td><strong>₹<%= grand_total.toFixed(2) %></strong></td>
+            <td style="color:var(--green);">₹<%= paid_amount.toFixed(2) %></td>
+            <td style="color:<%= due > 0.01 ? 'var(--red)' : 'var(--text-muted)' %>;font-weight:700;">
+              <%= due > 0.01 ? '₹'+due.toFixed(2) : '—' %>
+            </td>
+            <td><span class="badge <%= inv.bill_type==='Cash' ? 'badge-orange' : 'badge-blue' %>"><%= inv.bill_type %></span></td>
+            <td><span class="badge <%= statusClass %>"><%= inv.status %></span></td>
+            <td>
+              <a href="/sales_invoices?inv=<%= encodeURIComponent(inv.invoice_no) %>" class="btn btn-ghost" style="padding:4px 10px;font-size:11px;"><i class="fas fa-eye"></i></a>
+              <a href="/sales_return?inv=<%= encodeURIComponent(inv.invoice_no) %>" class="btn" style="padding:4px 10px;font-size:11px;background:var(--card2);border:1px solid var(--border);color:var(--orange);" title="Return"><i class="fas fa-rotate-left"></i></a>
+            </td>
+          </tr>
+          <% }) %>
+        <% } else { %>
+          <tr><td colspan="10" style="text-align:center;padding:36px;color:var(--text-muted);"><i class="fas fa-folder-open" style="font-size:28px;display:block;margin-bottom:8px;opacity:.4;"></i>No invoices found for the selected filters.</td></tr>
+        <% } %>
+        </tbody>
+      </table>
+    </div>
+    <% } %>
+  </div>
+</div>
+
+<script>
+function toggleTheme(){
+  const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('admin-theme', t);
+  document.getElementById('themeIcon').className = t === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+}
+(function(){const t=localStorage.getItem('admin-theme')||'dark'; document.getElementById('themeIcon').className=t==='light'?'fas fa-moon':'fas fa-sun';})();
+</script>
+</body></html>

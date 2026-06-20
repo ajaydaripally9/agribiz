@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GST Tax Reports — AgriBiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
+:root{--bg:#0d1117;--card:#161b22;--card2:#1c2333;--green:#22c55e;--blue:#3b82f6;--purple:#a855f7;--orange:#f59e0b;--red:#ef4444;--text:#e6edf3;--muted:#8b949e;--border:#30363d;}
+body{background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
+
+.main{flex:1;padding:28px;max-width:1200px;}
+.topbar{margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;}
+.topbar h1{font-size:22px;font-weight:700;} .topbar h1 span{color:var(--green);}
+
+.tab-nav{display:flex;gap:8px;background:var(--card);border:1px solid var(--border);padding:6px;border-radius:14px;width:fit-content;margin-bottom:24px;}
+.tab-btn{padding:10px 20px;border-radius:10px;font-size:13px;font-weight:700;color:var(--muted);text-decoration:none;transition:.2s;}
+.tab-btn:hover{color:#fff;}
+.tab-btn.active{background:var(--green);color:#fff;}
+
+.stats-grid{display:grid;grid-template-columns:repeat(4, 1fr);gap:16px;margin-bottom:24px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.stat-card .lbl{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.stat-card .val{font-size:22px;font-weight:800;}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:700;}
+.card-header i{color:var(--green);}
+.card-body{padding:0;}
+
+.table{width:100%;border-collapse:collapse;}
+.table th{padding:12px 16px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);background:rgba(255,255,255,.02);}
+.table td{padding:12px 16px;font-size:13px;border-top:1px solid var(--border);vertical-align:middle;}
+.table tr:hover td{background:rgba(255,255,255,.02);}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;}
+.badge-green{background:rgba(34,197,94,.15);color:var(--green);}
+.badge-purple{background:rgba(168,85,247,.15);color:var(--purple);}
+
+.empty{text-align:center;padding:40px;color:var(--muted);}
+
+@media print {
+  .sidebar, .topbar button, .tab-nav, .no-print { display: none !important; }
+  .main { margin: 0; padding: 16px; }
+  body { background: #fff; color: #000; }
+  .card, .stat-card { border: 1px solid #ddd; background: #fff; }
+  .stat-card .val, .card-header h3 { color: #000 !important; }
+}
+</style>
+</head>
+<body>
+
+<%- include('partials/sidebar') %>
+
+<div class="main">
+  <div class="topbar">
+    <div>
+      <h1>GST <span>Tax Reports</span></h1>
+      <p style="font-size:12px;color:var(--muted);margin-top:4px;">Retrieve complete sales/purchase tax sheets categorized by HSN and GST thresholds</p>
+    </div>
+    <button onclick="window.print()" class="btn btn-blue" style="padding:10px 20px; border:none; border-radius:8px; background:var(--blue); color:#fff; font-weight:700; cursor:pointer;"><i class="fas fa-print"></i> Print Report</button>
+  </div>
+
+  <!-- Tabs Navigation -->
+  <div class="tab-nav">
+    <a href="/gst_reports?tab=sales" class="tab-btn <%= activeTab === 'sales' ? 'active' : '' %>"><i class="fas fa-arrow-down-long"></i> GSTR-1 (Sales GST)</a>
+    <a href="/gst_reports?tab=purchases" class="tab-btn <%= activeTab === 'purchases' ? 'active' : '' %>"><i class="fas fa-arrow-up-long"></i> GSTR-2 (Purchase GST)</a>
+  </div>
+
+  <% if (activeTab === 'sales') { %>
+    <!-- ==================== GSTR-1 (SALES) ==================== -->
+    <div class="stats-grid">
+      <div class="stat-card" style="border-left:4px solid var(--green);"><div class="lbl">Total Taxable Value</div><div class="val">₹<%= salesTotals.taxable.toFixed(2) %></div></div>
+      <div class="stat-card" style="border-left:4px solid var(--purple);"><div class="lbl">Total CGST Collected (9%)</div><div class="val" style="color:var(--purple);">₹<%= salesTotals.cgst.toFixed(2) %></div></div>
+      <div class="stat-card" style="border-left:4px solid var(--blue);"><div class="lbl">Total SGST Collected (9%)</div><div class="val" style="color:var(--blue);">₹<%= salesTotals.sgst.toFixed(2) %></div></div>
+      <div class="stat-card" style="border-left:4px solid var(--orange);"><div class="lbl">Total Outward Supplies</div><div class="val" style="color:var(--orange);">₹<%= salesTotals.grand.toFixed(2) %></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3><i class="fas fa-percentage"></i> Sales GST (GSTR-1) — HSN Summary Sheet</h3></div>
+      <div class="card-body" style="padding:0;">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>HSN Code</th>
+              <th>Particulars (Product Name)</th>
+              <th>Total Qty</th>
+              <th>Tax Rate (%)</th>
+              <th style="text-align:right;">Taxable Value (₹)</th>
+              <th style="text-align:right;">CGST Collected (₹)</th>
+              <th style="text-align:right;">SGST Collected (₹)</th>
+              <th style="text-align:right;">Grand Total (₹)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (salesTaxRows.length > 0) { %>
+              <% salesTaxRows.forEach(row => { %>
+              <tr>
+                <td style="font-weight:bold; color:var(--blue);"><%= row.hsn %></td>
+                <td><strong><%= row.particulars %></strong></td>
+                <td><span class="badge badge-green"><%= row.qty %> units</span></td>
+                <td>18% (9% + 9%)</td>
+                <td style="text-align:right; font-weight:600;">₹<%= row.taxable.toFixed(2) %></td>
+                <td style="text-align:right; color:var(--purple);">₹<%= row.cgst.toFixed(2) %></td>
+                <td style="text-align:right; color:var(--blue);">₹<%= row.sgst.toFixed(2) %></td>
+                <td style="text-align:right; font-weight:700; color:var(--green);">₹<%= row.grand.toFixed(2) %></td>
+              </tr>
+              <% }) %>
+              <tr style="background:rgba(255,255,255,0.03); font-weight:bold;">
+                <td colspan="4" style="text-align:right;">Cumulative GSTR-1 Totals:</td>
+                <td style="text-align:right;">₹<%= salesTotals.taxable.toFixed(2) %></td>
+                <td style="text-align:right; color:var(--purple);">₹<%= salesTotals.cgst.toFixed(2) %></td>
+                <td style="text-align:right; color:var(--blue);">₹<%= salesTotals.sgst.toFixed(2) %></td>
+                <td style="text-align:right; color:var(--green);">₹<%= salesTotals.grand.toFixed(2) %></td>
+              </tr>
+            <% } else { %>
+              <tr><td colspan="8" class="empty">No sales records available for tax reporting.</td></tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  <% } else if (activeTab === 'purchases') { %>
+    <!-- ==================== GSTR-2 (PURCHASES) ==================== -->
+    <div class="stats-grid">
+      <div class="stat-card" style="border-left:4px solid var(--green);"><div class="lbl">Total Taxable Value</div><div class="val">₹<%= purTotals.taxable.toFixed(2) %></div></div>
+      <div class="stat-card" style="border-left:4px solid var(--purple);"><div class="lbl">Total CGST Paid (9%)</div><div class="val" style="color:var(--purple);">₹<%= purTotals.cgst.toFixed(2) %></div></div>
+      <div class="stat-card" style="border-left:4px solid var(--blue);"><div class="lbl">Total SGST Paid (9%)</div><div class="val" style="color:var(--blue);">₹<%= purTotals.sgst.toFixed(2) %></div></div>
+      <div class="stat-card" style="border-left:4px solid var(--orange);"><div class="lbl">Total Inward Supplies</div><div class="val" style="color:var(--orange);">₹<%= purTotals.grand.toFixed(2) %></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3><i class="fas fa-percentage"></i> Purchases GST (GSTR-2) — HSN Summary Sheet</h3></div>
+      <div class="card-body" style="padding:0;">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>HSN Code</th>
+              <th>Particulars (Product Name)</th>
+              <th>Total Qty</th>
+              <th>Tax Rate (%)</th>
+              <th style="text-align:right;">Taxable Value (₹)</th>
+              <th style="text-align:right;">CGST Paid (₹)</th>
+              <th style="text-align:right;">SGST Paid (₹)</th>
+              <th style="text-align:right;">Grand Total (₹)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (purTaxRows.length > 0) { %>
+              <% purTaxRows.forEach(row => { %>
+              <tr>
+                <td style="font-weight:bold; color:var(--blue);"><%= row.hsn %></td>
+                <td><strong><%= row.particulars %></strong></td>
+                <td><span class="badge badge-purple"><%= row.qty %> units</span></td>
+                <td>18% (9% + 9%)</td>
+                <td style="text-align:right; font-weight:600;">₹<%= row.taxable.toFixed(2) %></td>
+                <td style="text-align:right; color:var(--purple);">₹<%= row.cgst.toFixed(2) %></td>
+                <td style="text-align:right; color:var(--blue);">₹<%= row.sgst.toFixed(2) %></td>
+                <td style="text-align:right; font-weight:700; color:var(--green);">₹<%= row.grand.toFixed(2) %></td>
+              </tr>
+              <% }) %>
+              <tr style="background:rgba(255,255,255,0.03); font-weight:bold;">
+                <td colspan="4" style="text-align:right;">Cumulative GSTR-2 Totals:</td>
+                <td style="text-align:right;">₹<%= purTotals.taxable.toFixed(2) %></td>
+                <td style="text-align:right; color:var(--purple);">₹<%= purTotals.cgst.toFixed(2) %></td>
+                <td style="text-align:right; color:var(--blue);">₹<%= purTotals.sgst.toFixed(2) %></td>
+                <td style="text-align:right; color:var(--green);">₹<%= purTotals.grand.toFixed(2) %></td>
+              </tr>
+            <% } else { %>
+              <tr><td colspan="8" class="empty">No purchases records available for tax reporting.</td></tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% } %>
+</div>
+
+</body>
+</html>
