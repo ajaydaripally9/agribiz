@@ -51,7 +51,7 @@ class PostgresConnectionWrapper {
   }
   async query(sql, params) {
     const pgSql = translateSql(sql);
-    const res = await this.client.query(pgSql, params || []);
+    const res = params ? await this.client.query(pgSql, params) : await this.client.query(pgSql);
     return [res.rows, res.fields];
   }
   async beginTransaction() {
@@ -72,7 +72,7 @@ class PostgresConnectionWrapper {
 const pool = {
   async query(sql, params) {
     const pgSql = translateSql(sql);
-    const res = await pgPool.query(pgSql, params || []);
+    const res = params ? await pgPool.query(pgSql, params) : await pgPool.query(pgSql);
     return [res.rows, res.fields];
   },
   async getConnection() {
