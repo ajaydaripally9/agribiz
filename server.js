@@ -1224,69 +1224,93 @@ app.get('/admin_billing', checkAdminSession, loadSidebarStats, async (req, res) 
 });
 
 app.post('/admin_billing', checkAdminSession, async (req, res) => {
-  const { customer_id, product_id, quantity, discount, bill_type, paid_amount, notes } = req.body;
-  const qty = parseInt(quantity || '0', 10);
-  const disc = parseFloat(discount || '0');
+  const { customer_id, bill_type, paid_amount, notes, items } = req.body;
   const paid = parseFloat(paid_amount || '0');
+  const disc = 0; // default discount to 0
+
+  if (!items || Object.keys(items).length === 0) {
+    req.session.message = "Invoicing failed: No items selected in cart.";
+    req.session.msg = req.session.message;
+    req.session.msgType = 'error';
+    return res.redirect('/admin_billing');
+  }
 
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
 
-    // 1. Fetch details
+    // 1. Fetch customer details
     const [cRows] = await conn.query("SELECT customer_name, points FROM customers WHERE id = ?", [customer_id]);
-    const [pRows] = await conn.query("SELECT fertilizer_name, price, quantity, batch_no, mfg_date, expiry_date, gst_percent FROM fertilizers WHERE id = ?", [product_id]);
-    
-    if (cRows.length === 0 || pRows.length === 0) throw new Error("Customer or Product not found");
-
+    if (cRows.length === 0) throw new Error("Customer not found");
     const cust = cRows[0];
-    const prod = pRows[0];
 
-    if (prod.quantity < qty) throw new Error(`Insufficient stock for product. Available: ${prod.quantity}`);
-
-    const itemPrice = parseFloat(prod.price);
-    const total = (itemPrice * qty) - disc;
     const invNo = 'BILL-' + Date.now().toString().slice(-6);
+    let grandTotal = 0;
 
-    // 2. Deduct inventory
-    await conn.query("UPDATE fertilizers SET quantity = quantity - ? WHERE id = ?", [qty, product_id]);
+    // Loop through each product in the POS cart
+    for (const prodId of Object.keys(items)) {
+      const qty = parseInt(items[prodId] || '0', 10);
+      if (qty <= 0) continue;
 
-    // 3. Create order record
-    await conn.query(
-      `INSERT INTO orders (customer_id, customer_name, fertilizer_id, fertilizer_name, quantity, total_price, order_date, status, invoice_no, paid_amount, bill_type, batch_no, mfg_date, expiry_date, discount)
-       VALUES (?, ?, ?, ?, ?, ?, CURDATE(), 'Delivered', ?, ?, ?, ?, ?, ?, ?)`,
-      [customer_id, cust.customer_name, product_id, prod.fertilizer_name, qty, total, invNo, paid, bill_type, prod.batch_no || '', prod.mfg_date, prod.expiry_date, disc]
-    );
+      // Fetch product details
+      const [pRows] = await conn.query("SELECT fertilizer_name, price, quantity, batch_no, mfg_date, expiry_date, gst_percent FROM fertilizers WHERE id = ?", [prodId]);
+      if (pRows.length === 0) throw new Error(`Product ID ${prodId} not found`);
+      const prod = pRows[0];
 
-    // 4. Create sale invoice entry
-    await conn.query(
-      `INSERT INTO sales (customer_name, fertilizer_name, quantity, total_price, sale_date, invoice_no, paid_amount, bill_type, batch_no, mfg_date, expiry_date, discount, gst_rate, notes)
-       VALUES (?, ?, ?, ?, CURDATE(), ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [cust.customer_name, prod.fertilizer_name, qty, total, invNo, paid, bill_type, prod.batch_no || '', prod.mfg_date, prod.expiry_date, disc, prod.gst_percent || 18.00, notes || '']
-    );
+      if (prod.quantity < qty) {
+        throw new Error(`Insufficient stock for ${prod.fertilizer_name}. Available: ${prod.quantity}`);
+      }
 
-    // 5. Update customer point rewards
+      const itemPrice = parseFloat(prod.price);
+      const total = (itemPrice * qty);
+      grandTotal += total;
+
+      // Deduct inventory stock
+      await conn.query("UPDATE fertilizers SET quantity = quantity - ? WHERE id = ?", [qty, prodId]);
+
+      // Create order record (marked as Delivered for direct offline purchases)
+      await conn.query(
+        `INSERT INTO orders (customer_id, customer_name, fertilizer_id, fertilizer_name, quantity, total_price, order_date, status, invoice_no, paid_amount, bill_type, batch_no, mfg_date, expiry_date, discount)
+         VALUES (?, ?, ?, ?, ?, ?, CURDATE(), 'Delivered', ?, ?, ?, ?, ?, ?, ?)`,
+        [customer_id, cust.customer_name, prodId, prod.fertilizer_name, qty, total, invNo, paid, bill_type, prod.batch_no || '', prod.mfg_date, prod.expiry_date, disc]
+      );
+
+      // Create sale invoice entry
+      await conn.query(
+        `INSERT INTO sales (customer_name, fertilizer_name, quantity, total_price, sale_date, invoice_no, paid_amount, bill_type, batch_no, mfg_date, expiry_date, discount, gst_rate, notes)
+         VALUES (?, ?, ?, ?, CURDATE(), ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [cust.customer_name, prod.fertilizer_name, qty, total, invNo, paid, bill_type, prod.batch_no || '', prod.mfg_date, prod.expiry_date, disc, prod.gst_percent || 18.00, notes || '']
+      );
+    }
+
+    // Update customer points
     const [adminRows] = await conn.query("SELECT points_multiplier FROM admin LIMIT 1");
     const mult = adminRows[0]?.points_multiplier || 1;
-    const ptsEarned = Math.floor(total / 100) * mult;
+    const ptsEarned = Math.floor(grandTotal / 100) * mult;
     await conn.query("UPDATE customers SET points = points + ? WHERE id = ?", [ptsEarned, customer_id]);
 
     await conn.commit();
-    req.session.msg = `Invoice '${invNo}' generated successfully. Points added: ${ptsEarned}`;
+    req.session.message = `Invoice '${invNo}' generated successfully. Points added: ${ptsEarned}`;
+    req.session.msg = req.session.message;
     req.session.msgType = 'success';
+    
+    // Redirect to invoice viewer directly and trigger printing
+    return res.redirect(`/view_invoice?invoice_no=${invNo}&print=true`);
   } catch (err) {
     await conn.rollback();
     console.error(err);
-    req.session.msg = "Invoicing failed: " + err.message;
+    req.session.message = "Invoicing failed: " + err.message;
+    req.session.msg = req.session.message;
     req.session.msgType = 'error';
+    return res.redirect('/admin_billing');
   } finally {
     conn.release();
   }
-  res.redirect('/admin_billing');
 });
 
 app.get('/view_invoice', checkAdminSession, loadSidebarStats, async (req, res) => {
   const invoice_no = req.query.invoice_no;
+  const printOnLoad = req.query.print === 'true';
   try {
     const [shopRows] = await pool.query("SELECT * FROM admin LIMIT 1");
     const shop = shopRows[0] || { shop_name: 'AgriBiz Pro', default_gst_rate: 18.00 };
@@ -1294,11 +1318,109 @@ app.get('/view_invoice', checkAdminSession, loadSidebarStats, async (req, res) =
     const [rows] = await pool.query("SELECT * FROM sales WHERE invoice_no = ?", [invoice_no]);
     if (rows.length === 0) return res.status(404).send("Invoice not found");
     
-    // Format dates
-    const invoice = rows[0];
-    invoice.sale_date_formatted = invoice.sale_date ? new Date(invoice.sale_date).toLocaleDateString('en-IN', { day:'2-digit', month:'long', year:'numeric' }) : '';
+    const firstItem = rows[0];
+    const invoiceNo = firstItem.invoice_no;
     
-    res.render('view_invoice', { invoice, shop });
+    // Format invoice dates
+    const invoiceDate = firstItem.sale_date ? new Date(firstItem.sale_date).toLocaleDateString('en-IN', { day:'2-digit', month:'long', year:'numeric' }) : '';
+    const billType = firstItem.bill_type || 'Cash';
+
+    // Format item dates for print layout
+    const items = rows.map(item => {
+      return {
+        ...item,
+        mfg_date_formatted: item.mfg_date ? new Date(item.mfg_date).toLocaleDateString('en-IN', { day:'2-digit', month:'2-digit', year:'numeric' }) : '',
+        expiry_date_formatted: item.expiry_date ? new Date(item.expiry_date).toLocaleDateString('en-IN', { day:'2-digit', month:'2-digit', year:'numeric' }) : ''
+      };
+    });
+
+    // Fetch customer details by searching orders for customer_id
+    const [ordRows] = await pool.query("SELECT customer_id FROM orders WHERE invoice_no = ? LIMIT 1", [invoice_no]);
+    let customer = { customer_name: firstItem.customer_name, mobile: 'N/A', address: 'N/A' };
+    if (ordRows.length > 0) {
+      const [custRows] = await pool.query("SELECT * FROM customers WHERE id = ?", [ordRows[0].customer_id]);
+      if (custRows.length > 0) {
+        customer = custRows[0];
+      }
+    }
+
+    // Calculate totals
+    let grandTotal = 0;
+    rows.forEach(item => {
+      grandTotal += Number(item.total_price) || 0;
+    });
+
+    const basePrice = grandTotal / 1.18;
+    const cgstTotalAmt = (grandTotal - basePrice) / 2;
+    const sgstTotalAmt = cgstTotalAmt;
+
+    // Calculate customer outstanding balance prior to this invoice
+    let prevBalance = 0;
+    if (customer.id) {
+      const [balRows] = await pool.query(
+        "SELECT SUM(total_price - paid_amount) as bal FROM sales WHERE customer_name = ? AND invoice_no != ?",
+        [customer.customer_name, invoice_no]
+      );
+      prevBalance = Number(balRows[0]?.bal || 0);
+      if (prevBalance < 0) prevBalance = 0;
+    }
+
+    const totalDueAmt = grandTotal + prevBalance;
+
+    // Convert number to words (Indian Rupees style)
+    function numberToWords(num) {
+      const a = ['','one ','two ','three ','four ','five ','six ','seven ','eight ','nine ','ten ','eleven ','twelve ','thirteen ','fourteen ','fifteen ','sixteen ','seventeen ','eighteen ','nineteen '];
+      const b = ['', '', 'twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];
+
+      function inWords(n) {
+        if ((n = n.toString()).length > 9) return 'overflow';
+        let nStr = ('000000000' + n).substr(-9);
+        let aMatch = nStr.match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
+        if (!aMatch) return '';
+        let words = '';
+        words += aMatch[1] != 0 ? (a[Number(aMatch[1])] || b[aMatch[1][0]] + ' ' + a[aMatch[1][1]]) + 'crore ' : '';
+        words += aMatch[2] != 0 ? (a[Number(aMatch[2])] || b[aMatch[2][0]] + ' ' + a[aMatch[2][1]]) + 'lakh ' : '';
+        words += aMatch[3] != 0 ? (a[Number(aMatch[3])] || b[aMatch[3][0]] + ' ' + a[aMatch[3][1]]) + 'thousand ' : '';
+        words += aMatch[4] != 0 ? (a[Number(aMatch[4])] || b[aMatch[4][0]] + ' ' + a[aMatch[4][1]]) + 'hundred ' : '';
+        words += aMatch[5] != 0 ? (words != '' ? 'and ' : '') + (a[Number(aMatch[5])] || b[aMatch[5][0]] + ' ' + a[aMatch[5][1]]) : '';
+        return words.trim() + ' ';
+      }
+
+      const amt = Math.floor(num);
+      const paisa = Math.round((num - amt) * 100);
+      let words = inWords(amt) + 'Rupees ';
+      if (paisa > 0) {
+        words += 'and ' + inWords(paisa) + 'Paise ';
+      }
+      return words + 'only';
+    }
+
+    const amountInWords = numberToWords(grandTotal).toUpperCase();
+
+    // Format WhatsApp invoice notification link
+    let waUrl = '#';
+    if (customer.mobile && customer.mobile !== 'N/A') {
+      const itemsText = rows.map(item => `${item.quantity}x ${item.fertilizer_name}`).join(', ');
+      const msg = `Hi ${customer.customer_name}, your bill #${invoiceNo} has been generated! Items: ${itemsText}. Total Amt: Rs.${grandTotal.toFixed(2)}. Net Due: Rs.${totalDueAmt.toFixed(2)}. Thank you for shopping with TIRUMALA FERTILIZERS!`;
+      waUrl = `https://wa.me/91${customer.mobile}?text=${encodeURIComponent(msg)}`;
+    }
+
+    res.render('view_invoice', {
+      invoiceNo,
+      invoiceDate,
+      billType,
+      customer,
+      items,
+      prevBalance,
+      grandTotal,
+      totalDueAmt,
+      cgstTotalAmt,
+      sgstTotalAmt,
+      amountInWords,
+      waUrl,
+      printOnLoad,
+      shop
+    });
   } catch (err) {
     console.error(err);
     res.status(500).send("Database error");
