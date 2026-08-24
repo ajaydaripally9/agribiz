@@ -5,19 +5,35 @@ const path = require('path');
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '.env') });
 
-const poolConfig = process.env.DATABASE_URL
+let rawDbUrl = process.env.DATABASE_URL;
+let rawHost = process.env.DB_HOST || '127.0.0.1';
+const regionDomain = process.env.RENDER_REGION_DOMAIN || 'oregon-postgres.render.com';
+
+// Fix Render short internal hostnames (e.g. dpg-xxxxx-a) that lack domain suffix
+if (rawDbUrl && rawDbUrl.match(/@dpg-[a-z0-9]+-a(\/|\?|$)/i)) {
+  console.log(`ℹ️ Expanding Render short internal DATABASE_URL hostname to include .${regionDomain}`);
+  rawDbUrl = rawDbUrl.replace(/@dpg-([a-z0-9]+)-a(\/|\?|$)/gi, `@dpg-$1-a.${regionDomain}$2`);
+}
+
+if (rawHost && rawHost.match(/^dpg-[a-z0-9]+-a$/i)) {
+  console.log(`ℹ️ Expanding Render short internal DB_HOST hostname to include .${regionDomain}`);
+  rawHost = `${rawHost}.${regionDomain}`;
+}
+
+const poolConfig = rawDbUrl
   ? {
-      connectionString: process.env.DATABASE_URL,
+      connectionString: rawDbUrl,
       ssl: {
         rejectUnauthorized: false
       }
     }
   : {
-      host: process.env.DB_HOST || '127.0.0.1',
+      host: rawHost,
       port: parseInt(process.env.DB_PORT || '5432', 10),
       user: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || '',
-      database: process.env.DB_NAME || 'fertilizer_shop'
+      database: process.env.DB_NAME || 'fertilizer_shop',
+      ssl: (rawHost.includes('render.com') || process.env.NODE_ENV === 'production') ? { rejectUnauthorized: false } : false
     };
 
 const pgPool = new Pool({
