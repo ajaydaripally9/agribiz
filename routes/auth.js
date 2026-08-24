@@ -13,6 +13,20 @@ router.get(['/', '/index'], (req, res) => {
   res.render('index');
 });
 
+async function safeComparePassword(inputPassword, storedPassword) {
+  if (!storedPassword || typeof storedPassword !== 'string') {
+    return false;
+  }
+  if (inputPassword === storedPassword) {
+    return true;
+  }
+  try {
+    return await bcrypt.compare(inputPassword, storedPassword);
+  } catch (err) {
+    return false;
+  }
+}
+
 router.post('/api_login', async (req, res) => {
   const { type, identifier, password } = req.body;
   if (!identifier || !password || !['customer', 'admin'].includes(type)) {
@@ -24,7 +38,7 @@ router.post('/api_login', async (req, res) => {
       const [rows] = await pool.query("SELECT * FROM customers WHERE mobile = ?", [identifier]);
       if (rows.length > 0) {
         const customer = rows[0];
-        const isMatch = await bcrypt.compare(password, customer.password).catch(() => false) || password === customer.password;
+        const isMatch = await safeComparePassword(password, customer.password);
         
         if (isMatch) {
           // Auto-hash plaintext passwords if matched directly
@@ -44,7 +58,7 @@ router.post('/api_login', async (req, res) => {
       const [rows] = await pool.query("SELECT * FROM admin WHERE username = ?", [identifier]);
       if (rows.length > 0) {
         const admin = rows[0];
-        const isMatch = await bcrypt.compare(password, admin.password).catch(() => false) || password === admin.password;
+        const isMatch = await safeComparePassword(password, admin.password);
         
         if (isMatch) {
           req.session.admin = true;
@@ -57,7 +71,7 @@ router.post('/api_login', async (req, res) => {
       const [userRows] = await pool.query("SELECT * FROM users WHERE username = ? AND is_active = 1", [identifier]);
       if (userRows.length > 0) {
         const user = userRows[0];
-        const isMatch = await bcrypt.compare(password, user.password).catch(() => false) || password === user.password;
+        const isMatch = await safeComparePassword(password, user.password);
         if (isMatch) {
           req.session.admin = true;
           req.session.admin_username = user.username;
@@ -69,7 +83,7 @@ router.post('/api_login', async (req, res) => {
     }
   } catch (err) {
     console.error("Login error:", err);
-    return res.json({ success: false, message: 'An internal server error occurred.' });
+    return res.json({ success: false, message: `Login error: ${err.message || 'An internal server error occurred.'}` });
   }
 });
 

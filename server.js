@@ -14,6 +14,9 @@ const { runMigrations } = require('./migrations');
 const app = express();
 const PORT = process.env.PORT || 8000;
 
+// Trust proxy for Render / HTTPS proxies
+app.set('trust proxy', 1);
+
 // EJS Setup
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
